@@ -1,0 +1,11 @@
+{
+  "name": "get-order",
+  "version": "1.0.0",
+  "description": "Gets the current details of a specific order",
+  "main": "index.js",
+  "author": "Momento, Inc",
+  "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.354.0",
+    "@aws-sdk/util-dynamodb": "^3.354.0"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "update-order",
+  "version": "1.0.0",
+  "description": "Updates items associated to an order",
+  "main": "index.js",
+  "author": "Momento, Inc",
+  "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.354.0",
+    "@aws-sdk/util-dynamodb": "^3.354.0"
+  }
+}

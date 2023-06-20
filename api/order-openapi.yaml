@@ -1,0 +1,229 @@
+openapi: 3.0.0
+info:
+  title: Momento Pizza Order API
+  description: |
+    Add, update, and get pizza orders
+  version: 1.0.0
+
+x-amazon-apigateway-request-validators:
+  Validate All:
+    validateRequestParameters: true
+    validateRequestBody: true
+x-amazon-apigateway-gateway-responses:
+  BAD_REQUEST_BODY:
+    statusCode: 400
+    responseTemplates:
+      application/json: '{ "message": "$context.error.validationErrorString" }'
+    responseParameters:
+      gatewayresponse.header.Access-Control-Allow-Origin: "'*'"  
+
+paths:
+  /orders:
+    post:
+      summary: Add a new order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+      responses:
+        201:
+          $ref: '#/components/responses/Created'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        500:
+          $ref: '#/components/responses/UnknownError'
+      x-amazon-apigateway-request-validator: Validate All
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddOrderFunction.Arn}/invocations
+        httpMethod: POST
+        type: aws_proxy
+    get:
+      summary: Get a list of all orders for the signed in user
+      responses:
+        200:
+          description: The list of ordered pizzas was returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/OrderList'
+        500:
+          $ref: '#/components/responses/UnknownError'
+      x-amazon-apigateway-request-validator: Validate All
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetMyOrdersFunction.Arn}/invocations
+        httpMethod: POST
+        type: aws_proxy
+
+  /orders/{orderId}:
+    parameters:
+      orderId:
+        name: orderId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Gets the detail for a specific order
+      responses:
+        200:
+          description: The order was found and the details were returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/Order'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/UnknownError'
+      x-amazon-apigateway-request-validator: Validate All
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetOrderFunction.Arn}/invocations
+        httpMethod: POST
+        type: aws_proxy
+    put:
+      summary: Update the items in an order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+      responses:
+        204:
+          description: The order was updated successfully
+        403:
+          $ref: '#/components/responses/Forbidden'
+        500:
+          $ref: '#/components/responses/UnknownError'
+      x-amazon-apigateway-request-validator: Validate All
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateOrderFunction.Arn}/invocations
+        httpMethod: POST
+        type: aws_proxy
+
+components:
+  schemas:
+    Order:
+      description: Details for a new order
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Pizza'
+    
+    OrderList:
+      description: List of orders and their statuses
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            description: Order id
+          status:
+            type: string
+            description: Current status of the order
+          lastUpdateDate:
+            type: string
+            description: Date and time of the last update
+          itemCount:
+            type: integer
+            description: Number of items in the order
+
+    Pizza:
+      description: Pizza details
+      type: object
+      properties:
+        size:
+          type: string
+          enum: [small, medium, large, x-large]
+        crust:
+          type: string
+          enum: [thin, hand-tossed, deep dish]
+        toppings:
+          type: array
+          items:
+            type: string
+            enum: [cheese, pepperoni, sausage, olives, peppers, mushrooms, onions, anchovies, chicken]
+        sauce:
+          type: string
+          enum: [tomato, alfredo, pesto, bbq]
+      required:
+        - size
+        - crust
+        - sauce
+
+  responses:
+    Created:
+      description: Successfully added into the system
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - id
+            properties:
+              id:
+                type: string
+                description: Identifier of the new entity
+    BadRequest:
+      description: Unable to process request. Likely due to improperly formatted request.
+      content:
+        application/json:
+          schema:
+            type: object            
+            properties:
+              message:
+                type: string
+                description: Message detailing what went wrong
+                example: The 'name' field is required and is missing.
+            required:
+              - message
+    NotFound:
+      description: The requested resource was not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: An order with the provided id was not found
+            required:
+              - message
+    Forbidden:
+      description: The caller is not authorized to perform the requested action
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: You are not authorized to perform the requested action
+            required:
+              - message
+    UnknownError:
+      description: An unexpected error occurred on the server.
+      content:
+        application/json:
+          schema:
+            type: object            
+            properties:
+              message:
+                type: string
+                description: Unknown error message
+                example: An unexpected error occurred.
+            required:
+              - message

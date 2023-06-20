@@ -1,0 +1,11 @@
+{
+  "name": "get-my-orders",
+  "version": "1.0.0",
+  "description": "Gets all orders created by the caller",
+  "main": "index.js",
+  "author": "Momento, Inc",
+  "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.354.0",
+    "@aws-sdk/util-dynamodb": "^3.354.0"
+  }
+}

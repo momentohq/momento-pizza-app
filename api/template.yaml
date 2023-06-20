@@ -1,0 +1,168 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Back-end service for the Momento Pizza App
+
+Parameters:  
+  MomentoApiToken:
+    Type: String
+    Description: API token for Momento Cache
+    NoEcho: true
+    Default: ''  
+
+Globals:
+  Function:
+    Runtime: nodejs18.x 
+    Architectures:
+      - arm64
+    Tracing: Active
+    Timeout: 3
+    MemorySize: 1024
+    Handler: index.handler
+    Environment:
+      Variables:
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+
+Resources:
+  OrderApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: ./order-openapi.yaml
+
+  OrderTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST      
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: type
+          AttributeType: S
+        - AttributeName: creator
+          AttributeType: S
+      GlobalSecondaryIndexes:
+        - IndexName: type
+          KeySchema:
+            - AttributeName: type
+              KeyType: HASH
+            - AttributeName: creator
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  DependencyLambdaLayer:
+    Type: AWS::Serverless::LayerVersion
+    Metadata:
+      BuildMethod: nodejs18.x
+      BuildArchitecture: arm64
+    Properties:
+      ContentUri: layers/
+      CompatibleRuntimes:
+        - nodejs18.x
+
+  AddOrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/add-order
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action: dynamodb:BatchWriteItem
+              Resource: !GetAtt OrderTable.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref OrderTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref OrderApi
+            Path: /orders
+            Method: POST
+
+  GetMyOrdersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/get-my-orders
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action: dynamodb:Query
+              Resource: !Sub ${OrderTable.Arn}/index/type
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref OrderTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref OrderApi
+            Path: /orders
+            Method: GET
+
+  GetOrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/get-order
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action: dynamodb:Query
+              Resource: !GetAtt OrderTable.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref OrderTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref OrderApi
+            Path: /orders/{orderId}
+            Method: GET
+
+  UpdateOrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/update-order
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action: 
+                - dynamodb:UpdateItem
+                - dynamodb:BatchWriteItem
+              Resource: !GetAtt OrderTable.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref OrderTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref OrderApi
+            Path: /orders/{orderId}
+            Method: PUT
+
+Outputs:
+  OrderApiEndpoint:
+    Description: Full url for the Order API
+    Value: !Sub "https://${OrderApi}.execute-api.${AWS::Region}.amazonaws.com/dev"

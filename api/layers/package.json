@@ -1,0 +1,15 @@
+{
+  "name": "dependency-lambda-layer",
+  "version": "1.0.0",
+  "description": "Lambda layer for function dependencies",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Momento, Inc",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.354.0",
+    "@aws-sdk/util-dynamodb": "^3.354.0"
+  }
+}
