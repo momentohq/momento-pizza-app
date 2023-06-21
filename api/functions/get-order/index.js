@@ -25,7 +25,7 @@ exports.handler = async (event) => {
 
     const data = result.Items.map(item => unmarshall(item));
     const metadata = data.find(d => d.sk == 'metadata');
-    if (metadata?.creator !== event.requestContext.identity.sourceIp) {
+    if (process.env.RESTRICT_TO_CREATOR == 'true' && metadata?.creator !== event.requestContext.identity.sourceIp) {
       // The user is not the creator of this order. 
       return {
         statusCode: 403,
@@ -39,7 +39,8 @@ exports.handler = async (event) => {
       createdAt: metadata.createdAt,
       numItems: metadata.numItems,
       status: metadata.status,
-      items: []
+      items: [],
+      ...(process.env.RESTRICT_TO_CREATOR == 'false') && { creator: metadata.creator }
     };
 
     const items = data.filter(d => d.sk.startsWith('item#'));

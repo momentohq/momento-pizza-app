@@ -1,8 +1,8 @@
 openapi: 3.0.0
 info:
-  title: Momento Pizza Order API
+  title: Momento Pizza Admin API
   description: |
-    Add, update, and get pizza orders
+    View and fill pizza orders
   version: 1.0.0
 
 x-amazon-apigateway-request-validators:
@@ -21,37 +21,14 @@ tags:
   - name: Order
 
 paths:
-  /orders:
-    post:
-      summary: Add a new order
-      tags:
-        - Order
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Order'
-      responses:
-        201:
-          $ref: '#/components/responses/Created'
-        400:
-          $ref: '#/components/responses/BadRequest'
-        500:
-          $ref: '#/components/responses/UnknownError'
-      x-amazon-apigateway-request-validator: Validate All
-      x-amazon-apigateway-integration:
-        uri:
-          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddOrderFunction.Arn}/invocations
-        httpMethod: POST
-        type: aws_proxy
+  /orders:    
     get:
-      summary: Get a list of all orders for the signed in user
+      summary: Get a list of all active orders
       tags:
         - Order
       responses:
         200:
-          description: The list of ordered pizzas was returned
+          description: The list of orders was returned
           content:
             application/json:
               schema:
@@ -61,7 +38,7 @@ paths:
       x-amazon-apigateway-request-validator: Validate All
       x-amazon-apigateway-integration:
         uri:
-          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetMyOrdersFunction.Arn}/invocations
+          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetAllOrdersFunction.Arn}/invocations
         httpMethod: POST
         type: aws_proxy
 
@@ -91,29 +68,6 @@ paths:
           Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetOrderFunction.Arn}/invocations
         httpMethod: POST
         type: aws_proxy
-    put:
-      summary: Update the items in an order
-      tags:
-        - Order
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Order'
-      responses:
-        204:
-          description: The order was updated successfully
-        403:
-          $ref: '#/components/responses/Forbidden'
-        500:
-          $ref: '#/components/responses/UnknownError'
-      x-amazon-apigateway-request-validator: Validate All
-      x-amazon-apigateway-integration:
-        uri:
-          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateOrderFunction.Arn}/invocations
-        httpMethod: POST
-        type: aws_proxy
 
   /orders/{orderId}/statuses:
     parameters:
@@ -131,14 +85,12 @@ paths:
               properties:
                 status:
                   type: string
-                  enum: [ SUBMITTED ]
+                  enum: [ IN PROGRESS, REJECTED, COMPLETED ]
               required: 
                 - status
       responses:
         204:
           description: The order was successfully submitted
-        403:
-          $ref: '#/components/responses/Forbidden'
         404:
           $ref: '#/components/responses/NotFound'
         409:
@@ -148,19 +100,19 @@ paths:
       x-amazon-apigateway-request-validator: Validate All
       x-amazon-apigateway-integration:
         uri:
-          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SubmitOrderFunction.Arn}/invocations
+          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateOrderStatusFunction.Arn}/invocations
         httpMethod: POST
         type: aws_proxy
 
 components:
   parameters:
     orderId:
-        name: orderId
-        in: path
-        required: true
-        schema:
-          type: string
-          
+      name: orderId
+      in: path
+      required: true
+      schema:
+        type: string
+
   schemas:
     Order:
       description: Details for a new order

@@ -19,6 +19,8 @@ Globals:
     Timeout: 3
     MemorySize: 1024
     Handler: index.handler
+    Layers:
+      - !Sub arn:aws:lambda:${AWS::Region}:094274105915:layer:AWSLambdaPowertoolsTypeScript:12
     Environment:
       Variables:
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
@@ -33,6 +35,16 @@ Resources:
           Name: AWS::Include
           Parameters:
             Location: ./order-openapi.yaml
+
+  AdminApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: ./admin-openapi.yaml
 
   OrderTable:
     Type: AWS::DynamoDB::Table
@@ -62,16 +74,7 @@ Resources:
           Projection:
             ProjectionType: ALL
 
-  DependencyLambdaLayer:
-    Type: AWS::Serverless::LayerVersion
-    Metadata:
-      BuildMethod: nodejs18.x
-      BuildArchitecture: arm64
-    Properties:
-      ContentUri: layers/
-      CompatibleRuntimes:
-        - nodejs18.x
-
+  # Order Api Functions
   AddOrderFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -130,6 +133,7 @@ Resources:
       Environment:
         Variables:
           TABLE_NAME: !Ref OrderTable
+          RESTRICT_TO_CREATOR: true
       Events:
         Api:
           Type: Api
@@ -162,7 +166,104 @@ Resources:
             Path: /orders/{orderId}
             Method: PUT
 
+  SubmitOrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/submit-order
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action: 
+                - dynamodb:UpdateItem
+                - dynamodb:GetItem
+              Resource: !GetAtt OrderTable.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref OrderTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref OrderApi
+            Path: /orders/{orderId}/statuses
+            Method: POST
+
+  # Admin Api Functions
+  GetAllOrdersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/get-all-orders
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action: dynamodb:Query
+              Resource: !Sub ${OrderTable.Arn}/index/type
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref OrderTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AdminApi
+            Path: /orders
+            Method: GET
+
+  UpdateOrderStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/update-order-status
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action: 
+                - dynamodb:UpdateItem
+                - dynamodb:GetItem
+              Resource: !GetAtt OrderTable.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref OrderTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AdminApi
+            Path: /orders/{orderId}/statuses
+            Method: POST
+        
+  AdminGetOrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/get-order
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action: dynamodb:Query
+              Resource: !GetAtt OrderTable.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref OrderTable
+          RESTRICT_TO_CREATOR: false
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AdminApi
+            Path: /orders/{orderId}
+            Method: GET
+
 Outputs:
   OrderApiEndpoint:
     Description: Full url for the Order API
     Value: !Sub "https://${OrderApi}.execute-api.${AWS::Region}.amazonaws.com/dev"
+  AdminApiEndpoint:
+    Description: Full url for the Admin API
+    Value: !Sub "https://${AdminApi}.execute-api.${AWS::Region}.amazonaws.com/dev"

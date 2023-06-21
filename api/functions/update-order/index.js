@@ -6,23 +6,30 @@ exports.handler = async (event) => {
   try {
     const input = JSON.parse(event.body);
     let oldNumberOfItems;
+    const timestamp = new Date().toISOString();
     try {
+
       const result = await ddb.send(new UpdateItemCommand({
         TableName: process.env.TABLE_NAME,
         Key: marshall({
           pk: event.pathParameters.orderId,
           sk: 'metadata'
         }),
-        UpdateExpression: 'SET #numItems = :numItems',
-        ConditionExpression: 'attribute_exists(#pk) and #creator = :creator',
+        UpdateExpression: 'SET #numItems = :numItems, #lastUpdated = :lastUpdated',
+        ConditionExpression: 'attribute_exists(#pk) and #creator = :creator and (#status = :waiting or #status = :submitted)',
         ExpressionAttributeNames: {
           '#numItems': 'numItems',
           '#pk': 'pk',
-          '#creator': 'creator'
+          '#creator': 'creator',
+          '#lastUpdated': 'lastUpdated',
+          '#status': 'status'
         },
         ExpressionAttributeValues: marshall({
           ':numItems': input.items.length,
-          ':creator': event.requestContext.identity.sourceIp
+          ':creator': event.requestContext.identity.sourceIp,
+          ':lastUpdated': timestamp,
+          ':waiting': 'WAITING ON CUSTOMER',
+          ':submitted': 'SUBMITTED'
         }),
         ReturnValues: 'UPDATED_OLD'
       }));
@@ -40,7 +47,6 @@ exports.handler = async (event) => {
       }
     }
 
-    const timestamp = new Date().toISOString();
     const newItems = input.items.map((item, index) => {
       return {
         PutRequest: {
@@ -51,8 +57,7 @@ exports.handler = async (event) => {
               size: item.size,
               crust: item.crust,
               toppings: item.toppings,
-              sauce: item.sauce,
-              lastUpdate: timestamp
+              sauce: item.sauce
             }
           )
         }

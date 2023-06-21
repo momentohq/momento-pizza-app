@@ -1,0 +1,15 @@
+{
+  "name": "update-order-status",
+  "version": "1.0.0",
+  "description": "Updates the status of an order",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Momento, Inc",
+  "license": "ISC",
+  "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.354.0",
+    "@aws-sdk/util-dynamodb": "^3.354.0"
+  }
+}
