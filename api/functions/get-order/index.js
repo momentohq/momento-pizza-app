@@ -1,9 +1,12 @@
 const { DynamoDBClient, QueryCommand } = require('@aws-sdk/client-dynamodb');
+const { Metrics, MetricUnits } = require('@aws-lambda-powertools/metrics');
 const { marshall, unmarshall } = require('@aws-sdk/util-dynamodb');
 const ddb = new DynamoDBClient();
+const metrics = new Metrics({ namespace: 'Momento', serviceName: 'pizza-tracker' });
 
 exports.handler = async (event) => {
   try {
+    const start = new Date();
     const result = await ddb.send(new QueryCommand({
       TableName: process.env.TABLE_NAME,
       KeyConditionExpression: '#pk = :pk',
@@ -52,7 +55,10 @@ exports.handler = async (event) => {
         toppings: item.toppings || []
       });
     }
-
+    
+    metrics.addMetric('get-order-latency', MetricUnits.Milliseconds, (new Date().getTime() - start.getTime()));
+    metrics.publishStoredMetrics();
+    
     return {
       statusCode: 200,
       body: JSON.stringify(order),

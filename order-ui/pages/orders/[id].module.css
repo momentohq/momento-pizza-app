@@ -1,0 +1,200 @@
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding-right: 30px;
+  padding-left: 30px;  
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 24px;
+}
+
+.orderStatus {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #39b54a;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 25px;
+  margin-left: auto;
+  transition: background-color 0.2s ease;
+}
+
+.orderStatus:hover {
+  background-color: #2d8a39;
+}
+
+.itemSection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  position: relative; 
+}
+
+.itemTabs {
+  display: flex;
+  align-items: center;  
+  height: 2em;
+}
+
+.itemTab {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  background-color: #f3f3f3;  
+  color: #333333;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  position: relative;
+  max-width: 120px;
+  min-width: 6.5em;
+  border: none;
+  margin-right: 10px;
+  border-radius: 4px;
+}
+
+
+.itemTab.active {
+  background-color: #39b54a;
+  color: #ffffff;
+}
+
+.deleteItemButton {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  color: #333333;
+  transition: color 0.2s ease;
+}
+
+.deleteItemButton:hover {
+  color: #ff0000;
+}
+
+.addItemButton {
+  padding: 12px;
+  background-color: #39b54a;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;  
+  border-radius: 4px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  transition: background-color 0.2s ease;
+}
+
+.addItemButton:hover {
+  background-color: #2d8a39;
+}
+
+.addIcon {
+  margin-right: .5em;
+}
+
+.itemForm {  
+  padding: 20px;
+  background-color: #f3f3f3;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.formGroup {
+  margin-bottom: 10px;
+}
+
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+
+.selectInput {
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+  border-radius: 4px;
+  border: 1px solid #cccccc;
+}
+
+.chipList {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 6px 10px;
+  background-color: #f3f3f3;
+  color: #333333;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 16px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.chip.selectedChip {
+  background-color: #39b54a;
+  color: #ffffff;
+}
+
+.submitButton {
+  padding: 12px;
+  background-color: #39b54a;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  margin-top: 30px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.submitButton:hover {
+  background-color: #2d8a39;
+}
+
+.submitButton:disabled {
+  background-color: #bfbfbf;
+  cursor: not-allowed;
+}
+
+.backArrow {
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  color: #333333;
+  margin-top: .5em;
+  margin-left: .5em;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.backArrow:hover {
+  color: #000000;
+}
+
+.backArrow svg {
+  margin-right: 8px;
+}
+
+.textareaInput {
+  width: 97%;
+  height: 100px;
+  resize: vertical;
+  padding: 8px;
+}

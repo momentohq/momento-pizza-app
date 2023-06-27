@@ -24,6 +24,11 @@ Globals:
     Environment:
       Variables:
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+  Api:
+    Cors:
+      AllowMethods: "'POST,GET,PUT,OPTIONS'"
+      AllowHeaders: "'Content-Type'"
+      AllowOrigin: "'*'"
 
 Resources:
   OrderApi:
@@ -259,6 +264,40 @@ Resources:
             RestApiId: !Ref AdminApi
             Path: /orders/{orderId}
             Method: GET
+
+  # Monitoring Dashboard
+  LatencyDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: MomentoPizza
+      DashboardBody: 
+        Fn::Sub: 
+          - |-
+            {
+              "widgets": [
+                {
+                  "type": "metric",
+                  "x": 0,
+                  "y": 0,
+                  "width": 12,
+                  "height": 6,
+                  "properties": {
+                    "metrics": [                      
+                      [ "Momento", "get-order-latency", "service", "pizza-tracker" ],
+                      [ ".", "get-my-orders-latency", ".", "." ],
+                      [ ".", "get-all-orders-latency", ".", "." ]
+                    ],
+                    "view": "timeSeries",
+                    "stacked": false,
+                    "region": "${region}",
+                    "stat": "Average",
+                    "period": 1,
+                    "title": "Latency Metrics"
+                  }
+                }
+              ]
+            }
+          - region: !Ref AWS::Region
 
 Outputs:
   OrderApiEndpoint:

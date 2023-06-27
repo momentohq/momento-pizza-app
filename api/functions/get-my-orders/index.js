@@ -1,9 +1,12 @@
 const { DynamoDBClient, QueryCommand } = require('@aws-sdk/client-dynamodb');
+const { Metrics, MetricUnits } = require('@aws-lambda-powertools/metrics');
 const { unmarshall, marshall } = require('@aws-sdk/util-dynamodb');
+const metrics = new Metrics({ namespace: 'Momento', serviceName: 'pizza-tracker' });
 const ddb = new DynamoDBClient();
 
 exports.handler = async (event) => {
   try {
+    const start = new Date();
     const ipAddress = event.requestContext.identity.sourceIp;
 
     const results = await ddb.send(new QueryCommand({
@@ -31,12 +34,14 @@ exports.handler = async (event) => {
         ...data.lastUpdated && { lastUpdated: data.lastUpdated }
       })
     });
-
+    metrics.addMetric('get-my-orders-latency', MetricUnits.Milliseconds, (new Date().getTime() - start.getTime()));
+    metrics.publishStoredMetrics();
+    
     return {
       statusCode: 200,
-      body: JSON.stringify(orders),
+      body: JSON.stringify(orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))),
       headers: { 'Access-Control-Allow-Origin': '*' }
-    }
+    };
   } catch (err) {
     console.error(err);
     return {
