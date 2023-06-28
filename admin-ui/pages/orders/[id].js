@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { Button, Card, Heading, Table, Flex, TableRow, TableCell, TableBody, View, Collection, withAuthenticator, Badge, Divider, Text } from '@aws-amplify/ui-react';
+import { Button, Card, Heading, Table, Flex, TableRow, TableCell, TableBody, View, Collection, withAuthenticator, Badge, Divider, Text, Loader } from '@aws-amplify/ui-react';
 import Head from 'next/head';
 import { Amplify } from "aws-amplify";
 import awsExports from "../../aws-exports";
@@ -87,7 +87,14 @@ const OrderDetail = () => {
   };
 
   if (!order) {
-    return <div>Loading...</div>;
+    return (
+      <Layout>
+        <Flex alignItems="center" justifyContent="center">
+          <Loader />
+        </Flex>
+      </Layout>
+    )
+    
   }
 
   return (
@@ -141,9 +148,9 @@ const OrderDetail = () => {
         <Flex direction="row" marginTop="relative.small" justifyContent="space-between" width="30%" >
           <Button onClick={handleGoBack}>Go Back</Button>
           <Flex direction="row">
-            {['SUBMITTED', 'IN PROGRESS'].includes(order?.status) && <Button onClick={handleRejectOrder} variation="warning">Reject Order</Button>}
+            {['SUBMITTED', 'IN PROGRESS'].includes(order?.status) && <Button onClick={handleRejectOrder} variation="warning" isLoading={isRejecting}>Reject Order</Button>}
             {order?.status == "SUBMITTED" && <Button onClick={handleStartOrder} variation="primary" isLoading={isStarting}>Start Order</Button>}
-            {order?.status == "IN PROGRESS" && <Button onClick={handleCompleteOrder} variation="primary">Complete Order</Button>}
+            {order?.status == "IN PROGRESS" && <Button onClick={handleCompleteOrder} variation="primary" isLoading={isCompleting}>Complete Order</Button>}
           </Flex>
         </Flex>
       </Flex>

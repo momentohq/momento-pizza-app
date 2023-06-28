@@ -1,11 +1,9 @@
 import { useRouter } from 'next/router';
-import { FaArrowLeft, FaTimes, FaPlusCircle } from 'react-icons/fa';
-import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
 import Head from 'next/head';
-import Header from '@/components/header';
-import Footer from '@/components/footer';
-import styles from './[id].module.css';
+import { MdAddBox, MdArrowBack, MdDelete } from 'react-icons/md';
+import Layout from '../../app/layout';
+import { View, ToggleButton, Flex, Heading, Badge, Tabs, TabItem, Card, SelectField, Button, Text, ToggleButtonGroup, ThemeProvider } from '@aws-amplify/ui-react';
 
 const baseUrl = 'https://16xdrsr906.execute-api.us-east-1.amazonaws.com/dev';
 
@@ -15,6 +13,10 @@ const OrderDetail = () => {
   const [order, setOrder] = useState(null);
   const [activeItem, setActiveItem] = useState(null);
   const [status, setStatus] = useState('');
+  const [toppings, setToppings] = useState([]);
+  const [size, setSize] = useState('large');
+  const [sauce, setSauce] = useState('tomato');
+  const [crust, setCrust] = useState('hand-tossed');
   const orderRef = useRef(null);
 
   useEffect(() => {
@@ -38,37 +40,45 @@ const OrderDetail = () => {
 
       setOrder(data);
       orderRef.current = data;
-      setActiveItem(0);
+      changeActiveItem(0);
       setStatus(data.status);
     } catch (error) {
       console.error('Error fetching order:', error);
     }
   };
 
-  const handleTabClick = (itemIndex) => {
-    setActiveItem(itemIndex);
+  const changeActiveItem = (index) => {
+    let item = orderRef.current.items[index];
+    if (!item) {
+      index = 0;
+      item = orderRef.current.items[index];
+    }
+    setSize(item.size);
+    setSauce(item.sauce);
+    setCrust(item.crust);
+    setToppings(item.toppings);
+    setActiveItem(index);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    const updatedItems = [...order.items];
+  const handleTabClick = (itemIndex) => {
+    changeActiveItem(itemIndex);
+  };
+
+  const handleInputChange = (name, value) => {
+    const updatedItems = [...orderRef.current.items];
     updatedItems[activeItem][name] = value;
-    setOrder((prevOrder) => ({
-      ...prevOrder,
-      items: updatedItems,
-    }));
+    const newOrder = { items: updatedItems };
+    setOrder(newOrder);
+    orderRef.current = newOrder;
     debounceSaveOrder();
   };
 
   const handleToppingChange = (e) => {
-    const { value } = e.target;
-    let index = order.items[activeItem].toppings.indexOf(value);
-    if (index > -1) {
-      order.items[activeItem].toppings.splice(index, 1);
-    } else {
-      order.items[activeItem].toppings.push(value);
-    }
-    setOrder({ ...order });
+    setToppings(e);
+    order.items[activeItem].toppings = e;
+    const newOrder = { ...order };
+    setOrder(newOrder);
+    orderRef.current = newOrder;
     debounceSaveOrder();
   };
 
@@ -82,12 +92,11 @@ const OrderDetail = () => {
     const newOrder = { items: [...order.items, newItem] };
     setOrder(newOrder);
     orderRef.current = newOrder;
-    setActiveItem(newOrder.items.length - 1);
+    changeActiveItem(newOrder.items.length - 1);
     debounceSaveOrder();
   };
 
-  const handleDeleteItem = (e) => {
-    e.stopPropagation();
+  const handleDeleteItem = () => {
     const updatedItems = [...order.items];
     if (updatedItems.length === 1) {
       return;
@@ -102,23 +111,13 @@ const OrderDetail = () => {
     if (activeItem === order.items.length - 1) {
       newActiveItem = activeItem - 1;
     }
-    setActiveItem(newActiveItem !== -1 ? newActiveItem : null);
+    changeActiveItem(newActiveItem !== -1 ? newActiveItem : null);
     debounceSaveOrder();
   };
 
   const debounceSaveOrder = () => {
     clearTimeout(debounceSaveOrder.timeout);
     debounceSaveOrder.timeout = setTimeout(saveOrder, 1000);
-  };
-
-  const getStatusDisplay = (status) => {
-    if (status === 'WAITING ON CUSTOMER') {
-      return 'IN CART';
-    } else if (status === 'IN PROGRESS') {
-      return 'BEING COOKED';
-    } else {
-      return status;
-    }
   };
 
   const handleSubmit = async () => {
@@ -167,9 +166,7 @@ const OrderDetail = () => {
   const { items } = order;
   const isOrderEditable = status === 'WAITING ON CUSTOMER' || status === 'SUBMITTED';
 
-  const sizeOptions = ['small', 'medium', 'large', 'x-large'];
-  const crustOptions = ['thin', 'hand-tossed', 'deep dish'];
-  const toppingsOptions = [
+  const toppingList = [
     'cheese',
     'pepperoni',
     'sausage',
@@ -180,144 +177,162 @@ const OrderDetail = () => {
     'mushrooms',
     'onions'
   ];
-  const sauceOptions = ['tomato', 'alfredo', 'pesto', 'bbq'];
+
+  const getStatusBadge = (status) => {
+    let label, variation;
+    switch (status) {
+      case 'SUBMITTED':
+        label = 'Pending';
+        variation = 'info';
+        break;
+      case 'IN PROGRESS':
+        label = 'Being Made';
+        variation = 'warning';
+        break;
+      case 'COMPLETED':
+        label = 'Out for Delivery';
+        variation = 'success';
+        break;
+      case 'REJECTED':
+        label = 'Rejected';
+        variation = 'error';
+        break;
+      default:
+        label = 'In Cart';
+        variation = '';
+        break;
+    };
+
+    return (<Badge size="large" variation={variation}>{label}</Badge>);
+  };
 
   return (
-    <>
-      <Head>
-        <title>Order Details | Momento Pizza</title>
-      </Head>
-      <Header />
-      <Link href="/orders">
-        <div className={styles.backArrow}>
-          <FaArrowLeft />
-        </div>
-      </Link>
-      <div className={styles.container}>
-        <h1 className={styles.heading}>
-          Order Details
-          <span className={styles.orderStatus}>{getStatusDisplay(status)}</span>
-        </h1>
-        <div className={styles.itemSection}>
-          <div className={styles.itemTabs}>
-            {items.map((item, index) => (
-              <button
-                key={index}
-                className={`${styles.itemTab} ${index === activeItem ? styles.active : ''}`}
-                onClick={() => handleTabClick(index)}
-              >
-                Pizza {index + 1}
-                {isOrderEditable && activeItem === index && (
-                  <FaTimes className={styles.deleteItemButton} onClick={handleDeleteItem} />
-                )}
-              </button>
-            ))}
-            {isOrderEditable && (
-              <button className={styles.addItemButton} onClick={handleAddItem}>
-                <FaPlusCircle className={styles.addIcon} /> Add Pizza
-              </button>
-            )}
-          </div>
-          {activeItem !== null && (
-            <div className={styles.itemForm}>
-              <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="size">
-                  Size:
-                </label>
-                <select
-                  name="size"
-                  id="size"
-                  value={items[activeItem]?.size}
-                  onChange={handleInputChange}
-                  disabled={!isOrderEditable}
-                  className={styles.selectInput}
-                >
-                  {sizeOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="crust">
-                  Crust:
-                </label>
-                <select
-                  name="crust"
-                  id="crust"
-                  value={items[activeItem]?.crust}
-                  onChange={handleInputChange}
-                  disabled={!isOrderEditable}
-                  className={styles.selectInput}
-                >
-                  {crustOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="sauce">
-                  Sauce:
-                </label>
-                <select
-                  name="sauce"
-                  id="sauce"
-                  value={items[activeItem]?.sauce}
-                  onChange={handleInputChange}
-                  disabled={!isOrderEditable}
-                  className={styles.selectInput}
-                >
-                  {sauceOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="toppings">
-                  Toppings:
-                </label>
-                <div className={styles.chipList}>
-                  {toppingsOptions.map((option) => (
-                    <div
-                      key={option}
-                      className={`${styles.chip} ${items[activeItem]?.toppings.includes(option) ? styles.selectedChip : ''}`}
-                      onClick={() => handleToppingChange({ target: { name: 'toppings', value: option } })}
-                    >
-                      {option}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="specialRequests">
-                  Special Requests:
-                </label>
-                <textarea
-                  name="specialRequests"
-                  id="specialRequests"
-                  value={items[activeItem]?.specialRequests || ''}
-                  onChange={handleInputChange}
-                  disabled={!isOrderEditable}
-                  className={styles.textareaInput}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-        {isOrderEditable && (
-          <button className={styles.submitButton} disabled={!isOrderEditable} onClick={handleSubmit}>
-            Submit Order
-          </button>
-        )}
-      </div>
-      <Footer />
-    </>
+    <ThemeProvider theme={theme} >
+      <Layout>
+        <Head>
+          <title>Order Details | Momento Pizza</title>
+        </Head>
+        <Flex direction="column" alignItems="center">
+          <Flex direction="column" alignItems="center" justifyContent="center" padding="1em" width="80%">
+            <Flex direction="row" justifyContent="space-between" alignItems="center" >
+              <Heading level="4">Order Details</Heading>
+              {getStatusBadge(order.status)}
+            </Flex>
+            <View width="100%">
+              <Tabs currentIndex={activeItem} onChange={(index) => handleTabClick(index)}>
+                {items.map((item, index) => (
+                  <TabItem title={"Pizza " + (index + 1)} key={"order" + index}>
+                    <Card variation="elevated" width="100%">
+                      <Flex direction="column">
+                        <SelectField label="Size" size="small" isDisabled={!isOrderEditable} value={size} onChange={(e) => { setSize(e.target.value); handleInputChange('size', e.target.value); }}>
+                          <option style={{ color: "black" }} value="small">Small</option>
+                          <option style={{ color: "black" }} value="medium">Medium</option>
+                          <option style={{ color: "black" }} value="large">Large</option>
+                          <option style={{ color: "black" }} value="x-large">X-Large</option>
+                        </SelectField>
+                        <SelectField label="Crust" size="small" isDisabled={!isOrderEditable} value={crust} onChange={(e) => { setCrust(e.target.value); handleInputChange('crust', e.target.value); }}>
+                          <option style={{ color: "black" }} value="thin">Thin</option>
+                          <option style={{ color: "black" }} value="hand-tossed">Hand-tossed</option>
+                          <option style={{ color: "black" }} value="deep dish">Deep Dish</option>
+                        </SelectField>
+                        <SelectField label="Sauce" size="small" isDisabled={!isOrderEditable} value={sauce} onChange={(e) => { setSauce(e.target.value); handleInputChange('sauce', e.target.value); }}>
+                          <option style={{ color: "black" }} value="tomato">Tomato</option>
+                          <option style={{ color: "black" }} value="alfredo">Alfredo</option>
+                          <option style={{ color: "black" }} value="pesto">Pesto</option>
+                          <option style={{ color: "black" }} value="bbq">BBQ</option>
+                        </SelectField>
+                        <Text fontSize=".85rem" color="darkslategray">Toppings</Text>
+                        <ToggleButtonGroup value={toppings} isSelectionRequired onChange={handleToppingChange}>
+                          {toppingList.map((topping, toppingIndex) => (
+                            <ToggleButton key={"topping" + toppingIndex} variation="primary" isDisabled={!isOrderEditable} borderRadius="xxl" fontSize=".9rem" value={topping} marginRight=".5em">{topping}</ToggleButton>
+                          ))}
+                        </ToggleButtonGroup>
+                        {isOrderEditable && (<Flex direction="row" alignItems="center" justifyContent="space-between" marginTop=".5em">
+                          <Button size="small" onClick={handleAddItem}><MdAddBox size="1em" /> <Text marginLeft=".5em" >Add Another</Text></Button>
+                          <Button size="small" isDisabled={order?.items?.length == 1} variation="warning" onClick={handleDeleteItem}><MdDelete size="1em" /> <Text marginLeft=".5em">Remove From Cart</Text></Button>
+                        </Flex>)}
+                      </Flex>
+                    </Card>
+                  </TabItem>
+                ))}
+              </Tabs>
+              <Card variation="elevated" marginTop="2em" padding=".7em">
+                <Flex direction="row" alignItems="center" justifyContent="space-between">
+                  <Button variation="link" onClick={() => router.push('/')}><MdArrowBack size="1em" /> <Text marginLeft=".5em">Go Back</Text></Button>
+                  {isOrderEditable && <Button variation="primary" onClick={handleSubmit}>Submit Order</Button>}
+                </Flex>
+              </Card>
+            </View>
+          </Flex>
+        </Flex>
+      </Layout>
+    </ThemeProvider>
   );
+};
+
+const theme = {
+  name: 'toggleButton-theme',
+  tokens: {
+    components: {
+      selectField: {
+        color: { value: 'black' },
+        option: {
+          color: { value: 'black' }
+        }
+      },
+      button: {
+        borderColor: { value: '#39b54a' },
+        color: { value: '#39b54a' },
+        primary: {
+          backgroundColor: { value: '#39b54a' }
+        }
+      },
+      togglebutton: {
+        primary: {
+          borderWidth: { value: '0' },
+          borderColor: { value: 'white' },
+          _pressed: {
+            backgroundColor: { value: '#39b54a' },
+            borderColor: { value: 'white' },
+            _focus: {
+              backgroundColor: { value: '#39b54a' },
+              borderColor: { value: 'white' }
+            }
+          },
+          _hover: {
+            backgroundColor: { value: '#25392B' },
+            color: { value: 'white' }
+          },
+          _focus: {
+            borderColor: { value: 'white' }
+          },
+          _active: {
+            borderColor: { value: 'white' }
+          }
+        },
+        borderWidth: { value: '0' },
+        borderColor: { value: 'white' },
+        _pressed: {
+          backgroundColor: { value: '#39b54a' },
+          borderColor: { value: 'white' },
+          _focus: {
+            backgroundColor: { value: '#39b54a' },
+            borderColor: { value: 'white' }
+          }
+        },
+        _hover: {
+          backgroundColor: { value: '#25392B' },
+          color: { value: 'white' }
+        },
+        _focus: {
+          borderColor: { value: 'white' }
+        },
+        _active: {
+          borderColor: { value: 'white' }
+        }
+      },
+    },
+  },
 };
 
 export default OrderDetail;

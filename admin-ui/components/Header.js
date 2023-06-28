@@ -1,10 +1,9 @@
 'use client'
 import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { Auth } from '@aws-amplify/auth';
+import { Heading, Flex, Link, Table, TableRow, TableCell, Badge, View } from '@aws-amplify/ui-react';
 
 const Header = () => {
-  const router = useRouter();
   const [user, setUser] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
   const avatarRef = useRef(null);
@@ -14,10 +13,6 @@ const Header = () => {
       .then(user => setUser(user))
       .catch(err => console.log(err));
   }, []);
-
-  const navigateHome = () => {
-    router.push('/');
-  }
 
   const handleAvatarClick = () => {
     setShowMenu(!showMenu);
@@ -31,6 +26,10 @@ const Header = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
+      if(event.target?.id == 'signoutbtn'){
+        handleSignOut();
+      }
+
       if (avatarRef.current && !avatarRef.current.contains(event.target)) {
         setShowMenu(false);
       }
@@ -43,68 +42,24 @@ const Header = () => {
   }, []);
 
   return (
-    <header style={headerStyle}>
-      <h1 style={homeStyle} onClick={navigateHome}>Momento Pizza Admin</h1>
+    <Flex direction="row" justifyContent="space-between" alignContent="center" padding="10px" backgroundColor="#25392B" boxShadow="medium">
+      <Heading level="3"><Link href='/' textDecoration="none" color="white">Momento Pizza Admin</Link></Heading>
       {user && (
-        <div
-          style={avatarStyle}
-          onClick={handleAvatarClick}
-          ref={avatarRef}
-        >
-          {user.username.charAt(0).toUpperCase()}
+        <View cursor="pointer">
+          <Badge size="large" onClick={handleAvatarClick} ref={avatarRef} fontSize="1rem">
+            {user.username.charAt(0).toUpperCase()}
+          </Badge>
           {showMenu && (
-            <div style={menuStyle}>
-              <div onClick={handleSignOut}>Sign out</div>
-            </div>
+            <Table size="small" highlightOnHover="true" backgroundColor="white" position="absolute" top="3.1em" right="1.1em" width="8em" >
+              <TableRow>
+                <TableCell id="signoutbtn" style={{cursor: "pointer"}}>Sign out</TableCell>
+              </TableRow>
+            </Table>
           )}
-        </div>
+        </View>
       )}
-    </header>
+    </Flex>
   );
-};
-
-const homeStyle = {
-  cursor: 'pointer',
-  fontSize: '1.7rem'
-};
-
-const headerStyle = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  padding: '10px',
-  backgroundColor: '#25392B',
-  width: '100%',
-  boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)',
-  fontSize: '1rem'
-};
-
-const avatarStyle = {
-  position: 'relative',
-  width: '40px',
-  height: '40px',
-  borderRadius: '50%',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  backgroundColor: '#C2B2A9',
-  color: '#fff',
-  fontSize: '20px',
-  cursor: 'pointer',
-};
-
-const menuStyle = {
-  position: 'absolute',
-  top: '100%',
-  width: '8em',
-  right: '0',
-  backgroundColor: '#fff',
-  boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-  borderRadius: '4px',
-  padding: '8px',
-  zIndex: '999',
-  color: '#000',
-  fontSize: '1rem'
 };
 
 export default Header;

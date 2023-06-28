@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react';
 import { Auth } from 'aws-amplify';
-import { Table, TableBody, TableCell, TableHead, TableRow, View, withAuthenticator, Button, Badge, Heading, Text, Flex, Loader } from '@aws-amplify/ui-react';
+import { Table, TableBody, TableCell, TableHead, TableRow, withAuthenticator, Button, Badge, Heading, Text, Flex, Loader } from '@aws-amplify/ui-react';
 import { useRouter } from 'next/navigation';
 import Head from 'next/head';
 import { Amplify } from "aws-amplify";
@@ -81,7 +81,7 @@ const Home = () => {
         <Text >
           Use this application to monitor and fulfill orders that come in through the Momento Pizza ordering app.
         </Text>
-        <Button backgroundColor="#00C88C" variation="primary" onClick={goToDashboard}>View CloudWatch Metrics</Button>
+        <Button backgroundColor="#00C88C" variation="primary" onClick={goToDashboard} boxShadow="small">View CloudWatch Metrics</Button>
       </Flex>
       <Table highlightOnHover="true" backgroundColor="white" boxShadow="medium">
         <TableHead >
