@@ -1,0 +1,240 @@
+{
+  "Comment": "Random load generator for the pizza admin app",
+  "StartAt": "Generate Iteration Array",
+  "States": {
+    "Generate Iteration Array": {
+      "Type": "Pass",
+      "Result": {
+        "iterations": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50]
+      },
+      "Next": "Run Iteration"
+    },
+    "Run Iteration": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Generate Orders",
+        "States": {
+          "Generate Orders": {
+            "Type": "Task",
+            "Resource": "${LambdaInvoke}",
+            "OutputPath": "$.Payload",
+            "Parameters": {
+              "FunctionName": "${GenerateOrders}",
+              "Payload": {
+                "numOrders.$": "States.MathRandom(1, 25)"
+              }
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 6,
+                "BackoffRate": 2
+              }
+            ],
+            "Next": "Create Orders"
+          },
+          "Create Orders": {
+            "Type": "Map",
+            "ItemProcessor": {
+              "ProcessorConfig": {
+                "Mode": "INLINE"
+              },
+              "StartAt": "Create Order",
+              "States": {
+                "Create Order": {
+                  "Type": "Task",
+                  "Resource": "${LambdaInvoke}",
+                  "OutputPath": "$.Payload",
+                  "Parameters": {
+                    "FunctionName": "${SendRequest}",
+                    "Payload": {
+                      "request": {
+                        "method": "POST",
+                        "baseUrl": "${OrderApiBaseUrl}/orders",
+                        "body.$": "$.order"
+                      }
+                    }
+                  },
+                  "Retry": [
+                    {
+                      "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                      ],
+                      "IntervalSeconds": 2,
+                      "MaxAttempts": 6,
+                      "BackoffRate": 2
+                    }
+                  ],
+                  "Next": "Get Order"
+                },
+                "Get Order": {
+                  "Type": "Task",
+                  "Resource": "${LambdaInvoke}",
+                  "Parameters": {
+                    "FunctionName": "${SendRequest}",
+                    "Payload": {
+                      "request": {
+                        "method": "GET",
+                        "baseUrl.$": "States.Format('${AdminApiBaseUrl}/orders/{}', $.id)"
+                      }
+                    }
+                  },
+                  "Retry": [
+                    {
+                      "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                      ],
+                      "IntervalSeconds": 2,
+                      "MaxAttempts": 6,
+                      "BackoffRate": 2
+                    }
+                  ],
+                  "ResultPath": null,
+                  "End": true
+                }
+              }
+            },
+            "ItemsPath": "$.orders",
+            "ItemSelector": {
+              "order.$": "$$.Map.Item.Value"
+            },
+            "ResultPath": "$.orderIds",
+            "Next": "Get All Orders",
+            "OutputPath": "$.orderIds"
+          },
+          "Get All Orders": {
+            "Type": "Parallel",
+            "Branches": [
+              {
+                "StartAt": "Get My Orders",
+                "States": {
+                  "Get My Orders": {
+                    "Type": "Task",
+                    "Resource": "${LambdaInvoke}",
+                    "Parameters": {
+                      "FunctionName": "${SendRequest}",
+                      "Payload": {
+                        "request": {
+                          "method": "GET",
+                          "baseUrl": "${OrderApiBaseUrl}/orders"
+                        }
+                      }
+                    },
+                    "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "Lambda.ServiceException",
+                          "Lambda.AWSLambdaException",
+                          "Lambda.SdkClientException",
+                          "Lambda.TooManyRequestsException"
+                        ],
+                        "IntervalSeconds": 2,
+                        "MaxAttempts": 6,
+                        "BackoffRate": 2
+                      }
+                    ],
+                    "ResultPath": null,
+                    "End": true
+                  }
+                }
+              },
+              {
+                "StartAt": "Admin - Get All Orders",
+                "States": {
+                  "Admin - Get All Orders": {
+                    "Type": "Task",
+                    "Resource": "${LambdaInvoke}",
+                    "Parameters": {
+                      "FunctionName": "${SendRequest}",
+                      "Payload": {
+                        "request": {
+                          "method": "GET",
+                          "baseUrl": "${AdminApiBaseUrl}/orders"
+                        }
+                      }
+                    },
+                    "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "Lambda.ServiceException",
+                          "Lambda.AWSLambdaException",
+                          "Lambda.SdkClientException",
+                          "Lambda.TooManyRequestsException"
+                        ],
+                        "IntervalSeconds": 2,
+                        "MaxAttempts": 6,
+                        "BackoffRate": 2
+                      }
+                    ],
+                    "End": true,
+                    "ResultPath": null
+                  }
+                }
+              }
+            ],
+            "ResultPath": null,
+            "Next": "Delete Generated Orders"
+          },
+          "Delete Generated Orders": {
+            "Type": "Map",
+            "ItemProcessor": {
+              "ProcessorConfig": {
+                "Mode": "INLINE"
+              },
+              "StartAt": "Delete Order",
+              "States": {
+                "Delete Order": {
+                  "Type": "Task",
+                  "Resource": "${LambdaInvoke}",
+                  "Parameters": {
+                    "FunctionName": "${DeleteOrder}",
+                    "Payload": {
+                      "orderId.$": "$.id"
+                    }
+                  },
+                  "Retry": [
+                    {
+                      "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                      ],
+                      "IntervalSeconds": 2,
+                      "MaxAttempts": 6,
+                      "BackoffRate": 2
+                    }
+                  ],
+                  "End": true,
+                  "ResultPath": null
+                }
+              }
+            },
+            "End": true
+          }
+        }
+      },
+      "ItemsPath": "$.iterations",
+      "MaxConcurrency": 10,
+      "Next": "Success"
+    },
+    "Success": {
+      "Type": "Succeed"
+    }
+  }
+}

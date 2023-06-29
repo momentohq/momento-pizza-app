@@ -265,6 +265,91 @@ Resources:
             Path: /orders/{orderId}
             Method: GET
 
+  # Load Generator
+  DeleteOrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: load-generator/functions/delete-order
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action: 
+                - dynamodb:Query
+                - dynamodb:BatchWriteItem
+              Resource: !GetAtt OrderTable.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref OrderTable
+  
+  GenerateOrdersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: load-generator/functions/generate-orders
+      Policies:
+        - AWSLambdaBasicExecutionRole
+
+  SendRequestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: load-generator/functions/send-request
+      Policies:
+        - AWSLambdaBasicExecutionRole
+
+  GeneratorStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Type: EXPRESS
+      DefinitionUri: load-generator/workflows/generator.asl.json
+      DefinitionSubstitutions:
+        LambdaInvoke: !Sub arn:${AWS::Partition}:states:::lambda:invoke
+        GenerateOrders: !GetAtt GenerateOrdersFunction.Arn
+        SendRequest: !GetAtt SendRequestFunction.Arn
+        DeleteOrder: !GetAtt DeleteOrderFunction.Arn
+        OrderApiBaseUrl: !Sub https://${OrderApi}.execute-api.${AWS::Region}.amazonaws.com/dev
+        AdminApiBaseUrl: !Sub https://${AdminApi}.execute-api.${AWS::Region}.amazonaws.com/dev
+      Policies:
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action: lambda:InvokeFunction
+              Resource:
+                - !GetAtt GenerateOrdersFunction.Arn
+                - !GetAtt SendRequestFunction.Arn
+                - !GetAtt DeleteOrderFunction.Arn
+            - Effect: Allow
+              Action:
+                - logs:CreateLogDelivery
+                - logs:GetLogDelivery
+                - logs:UpdateLogDelivery
+                - logs:DeleteLogDelivery
+                - logs:ListLogDeliveries
+                - logs:PutResourcePolicy
+                - logs:DescribeResourcePolicies
+                - logs:DescribeLogGroups
+              Resource: "*"  
+      Events:
+        StartEvent:
+          Type: EventBridgeRule
+          Properties:
+            Pattern:
+              detail-type:
+                - Load Generator
+              source:
+                - momento.pizza
+      Logging:
+        Level: ALL
+        IncludeExecutionData: true
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt GeneratorLogGroup.Arn
+
+  GeneratorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 30
+
   # Monitoring Dashboard
   LatencyDashboard:
     Type: AWS::CloudWatch::Dashboard
@@ -274,28 +359,66 @@ Resources:
         Fn::Sub: 
           - |-
             {
-              "widgets": [
-                {
-                  "type": "metric",
-                  "x": 0,
-                  "y": 0,
-                  "width": 12,
-                  "height": 6,
-                  "properties": {
-                    "metrics": [                      
-                      [ "Momento", "get-order-latency", "service", "pizza-tracker" ],
-                      [ ".", "get-my-orders-latency", ".", "." ],
-                      [ ".", "get-all-orders-latency", ".", "." ]
-                    ],
-                    "view": "timeSeries",
-                    "stacked": false,
-                    "region": "${region}",
-                    "stat": "Average",
-                    "period": 1,
-                    "title": "Latency Metrics"
-                  }
-                }
-              ]
+                "widgets": [
+                    {
+                        "height": 6,
+                        "width": 12,
+                        "y": 0,
+                        "x": 0,
+                        "type": "metric",
+                        "properties": {
+                            "metrics": [
+                                [ "Momento", "get-order-latency", "service", "pizza-tracker", { "region": "${region}" } ],
+                                [ "Momento", "get-my-orders-latency", "service", "pizza-tracker", { "region": "${region}" } ],
+                                [ "Momento", "get-all-orders-latency", "service", "pizza-tracker", { "region": "${region}" } ]
+                            ],
+                            "view": "timeSeries",
+                            "stacked": false,
+                            "region": "${region}",
+                            "stat": "Average",
+                            "period": 1,
+                            "title": "Latency Metrics"
+                        }
+                    },
+                    {
+                        "type": "metric",
+                        "x": 12,
+                        "y": 0,
+                        "width": 12,
+                        "height": 3,
+                        "properties": {
+                            "sparkline": true,
+                            "view": "singleValue",
+                            "metrics": [
+                                [ "Momento", "get-all-orders-latency", "service", "pizza-tracker" ],
+                                [ ".", "get-my-orders-latency", ".", "." ],
+                                [ ".", "get-order-latency", ".", "." ]
+                            ],
+                            "region": "${region}",
+                            "title": "Avg Latency"
+                        }
+                    },
+                    {
+                        "type": "metric",
+                        "x": 12,
+                        "y": 3,
+                        "width": 12,
+                        "height": 3,
+                        "properties": {
+                            "metrics": [
+                                [ "Momento", "get-all-orders-latency", "service", "pizza-tracker", { "region": "${region}" } ],
+                                [ ".", "get-my-orders-latency", ".", ".", { "region": "${region}" } ],
+                                [ ".", "get-order-latency", ".", ".", { "region": "${region}" } ]
+                            ],
+                            "sparkline": true,
+                            "view": "singleValue",
+                            "region": "${region}",
+                            "title": "p99 Latency",
+                            "period": 300,
+                            "stat": "p99"
+                        }
+                    }
+                ]
             }
           - region: !Ref AWS::Region
 
