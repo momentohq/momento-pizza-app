@@ -294,6 +294,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: load-generator/functions/send-request
+      Timeout: 30
       Policies:
         - AWSLambdaBasicExecutionRole
 

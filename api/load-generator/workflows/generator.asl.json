@@ -88,7 +88,8 @@
                       "request": {
                         "method": "GET",
                         "baseUrl.$": "States.Format('${AdminApiBaseUrl}/orders/{}', $.id)"
-                      }
+                      },
+                      "iterations.$": "States.MathRandom(1, 15)" 
                     }
                   },
                   "Retry": [
