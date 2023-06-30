@@ -2,10 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/navigation';
-import { Table, TableBody, TableCell, TableHead, TableRow, View, Link, Badge, Heading, Text, Flex, Image, Loader } from '@aws-amplify/ui-react';
+import { Table, TableBody, TableCell, TableHead, TableRow, View, Badge, Heading, Text, Flex, Image, Loader } from '@aws-amplify/ui-react';
 import { MdOutlineNavigateNext, MdRefresh } from 'react-icons/md';
-
-const baseUrl = 'https://16xdrsr906.execute-api.us-east-1.amazonaws.com/dev';
 
 const Home = () => {
   const router = useRouter();
@@ -19,7 +17,7 @@ const Home = () => {
   const fetchOrders = async () => {
     try {
       setIsFetching(true);
-      const response = await fetch(`${baseUrl}/orders`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_ORDER_API}/orders`);
       const data = await response.json();
       setOrders(data);
     } catch (err) {

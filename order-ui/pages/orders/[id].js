@@ -5,8 +5,6 @@ import { MdAddBox, MdArrowBack, MdDelete } from 'react-icons/md';
 import Layout from '../../app/layout';
 import { View, ToggleButton, Flex, Heading, Badge, Tabs, TabItem, Card, SelectField, Button, Text, ToggleButtonGroup, ThemeProvider } from '@aws-amplify/ui-react';
 
-const baseUrl = 'https://16xdrsr906.execute-api.us-east-1.amazonaws.com/dev';
-
 const OrderDetail = () => {
   const router = useRouter();
   const { id } = router.query;
@@ -18,6 +16,7 @@ const OrderDetail = () => {
   const [sauce, setSauce] = useState('tomato');
   const [crust, setCrust] = useState('hand-tossed');
   const orderRef = useRef(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -27,7 +26,7 @@ const OrderDetail = () => {
 
   const fetchOrder = async (orderId) => {
     try {
-      const response = await fetch(`${baseUrl}/orders/${orderId}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_ORDER_API}/orders/${orderId}`);
       const data = await response.json();
       if (data.items.length === 0) {
         data.items.push({
@@ -122,7 +121,8 @@ const OrderDetail = () => {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch(`${baseUrl}/orders/${id}/statuses`, {
+      setIsSubmitting(true);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_ORDER_API}/orders/${id}/statuses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -131,18 +131,20 @@ const OrderDetail = () => {
       });
       if (response.ok) {
         console.log('Order submitted successfully');
-        router.push('/orders');
+        router.push('/');
       } else {
         console.error('Failed to save order');
       }
     } catch (error) {
       console.error('Error saving order:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const saveOrder = async () => {
     try {
-      const response = await fetch(`${baseUrl}/orders/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_ORDER_API}/orders/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -259,7 +261,7 @@ const OrderDetail = () => {
               <Card variation="elevated" marginTop="2em" padding=".7em">
                 <Flex direction="row" alignItems="center" justifyContent="space-between">
                   <Button variation="link" onClick={() => router.push('/')}><MdArrowBack size="1em" /> <Text marginLeft=".5em">Go Back</Text></Button>
-                  {isOrderEditable && <Button variation="primary" onClick={handleSubmit}>Submit Order</Button>}
+                  {isOrderEditable && <Button variation="primary" isLoading={isSubmitting} onClick={handleSubmit}>Submit Order</Button>}
                 </Flex>
               </Card>
             </View>
