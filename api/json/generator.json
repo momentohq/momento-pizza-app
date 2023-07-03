@@ -1,0 +1,9 @@
+{
+  "Entries": [
+    {
+      "Source": "momento.pizza",
+      "DetailType": "Load Generator",
+      "Detail": "{\"iterations\":1}"
+    }
+  ]
+}

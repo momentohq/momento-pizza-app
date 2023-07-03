@@ -23,7 +23,7 @@ const getAxiosConfig = (state) => {
     baseURL: state.request.baseUrl,
     ...state.request.body && { data: state.request.body },
     responseType: 'json',
-    validateStatus: (status) => status < 400
+    validateStatus: (status) => status < 500
   };
 
   return config;
