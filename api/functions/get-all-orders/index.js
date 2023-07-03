@@ -32,16 +32,17 @@ exports.handler = async (event) => {
         ...orderData.lastUpdated && { lastUpdated: orderData.lastUpdated }
       }
     });
+    
+    orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
     metrics.addMetric('get-all-orders-latency', MetricUnits.Milliseconds, (new Date().getTime() - start.getTime()));
     metrics.publishStoredMetrics();
-
-    orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 
     return {
       statusCode: 200,
       body: JSON.stringify(orders),
       headers: { 'Access-Control-Allow-Origin': '*' }
-    }
+    };
   } catch (err) {
     console.error(err);
     return {
