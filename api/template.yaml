@@ -24,6 +24,7 @@ Globals:
     Environment:
       Variables:
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+        SECRET_ID: !Ref MomentoSecret
   Api:
     Cors:
       AllowMethods: "'POST,GET,PUT,OPTIONS'"
@@ -79,6 +80,17 @@ Resources:
           Projection:
             ProjectionType: ALL
 
+  MomentoSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      SecretString:
+        Fn::Sub:
+          - |-
+            {            
+              "momento": "${MomentoApiToken}"
+            }
+          - MomentoApiToken: !Ref MomentoApiToken
+
   # Order Api Functions
   AddOrderFunction:
     Type: AWS::Serverless::Function
@@ -113,6 +125,10 @@ Resources:
             - Effect: Allow
               Action: dynamodb:Query
               Resource: !Sub ${OrderTable.Arn}/index/type
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Ref MomentoSecret
       Environment:
         Variables:
           TABLE_NAME: !Ref OrderTable
@@ -135,6 +151,10 @@ Resources:
             - Effect: Allow
               Action: dynamodb:Query
               Resource: !GetAtt OrderTable.Arn
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Ref MomentoSecret
       Environment:
         Variables:
           TABLE_NAME: !Ref OrderTable
@@ -207,6 +227,10 @@ Resources:
             - Effect: Allow
               Action: dynamodb:Query
               Resource: !Sub ${OrderTable.Arn}/index/type
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Ref MomentoSecret
       Environment:
         Variables:
           TABLE_NAME: !Ref OrderTable
@@ -253,6 +277,10 @@ Resources:
             - Effect: Allow
               Action: dynamodb:Query
               Resource: !GetAtt OrderTable.Arn
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Ref MomentoSecret
       Environment:
         Variables:
           TABLE_NAME: !Ref OrderTable
