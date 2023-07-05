@@ -1,13 +1,70 @@
 {
   "Comment": "Random load generator for the pizza admin app",
-  "StartAt": "Generate Iteration Array",
+  "StartAt": "Was numRuns Provided?",
   "States": {
+    "Was numRuns Provided?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.numRuns",
+          "IsPresent": true,
+          "Next": "Initialize Counter"
+        }
+      ],
+      "Default": "Was It In The Event?"
+    },
+    "Was It In The Event?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.detail.numRuns",
+          "IsPresent": true,
+          "Next": "Set numRuns From Event"
+        }
+      ],
+      "Default": "Set numRuns to One"
+    },
+    "Set numRuns From Event": {
+      "Type": "Pass",
+      "Parameters": {
+        "numRuns.$": "$.detail.numRuns"
+      },
+      "Next": "Initialize Counter"
+    },
+    "Set numRuns to One": {
+      "Type": "Pass",
+      "Next": "Initialize Counter",
+      "Parameters": {
+        "numRuns": 1
+      }
+    },
+    "Initialize Counter": {
+      "Type": "Pass",
+      "Next": "More Iterations?",
+      "Parameters": {
+        "numRuns.$": "$.numRuns",
+        "count": 0
+      }
+    },
+    "More Iterations?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.count",
+          "NumericLessThanPath": "$.numRuns",
+          "Next": "Generate Iteration Array"
+        }
+      ],
+      "Default": "Success"
+    },
     "Generate Iteration Array": {
       "Type": "Pass",
-      "Result": {
+      "Next": "Run Iteration",
+      "Parameters": {
+        "numRuns.$": "$.numRuns",
+        "count.$": "$.count",
         "iterations": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50]
-      },
-      "Next": "Run Iteration"
+      }
     },
     "Run Iteration": {
       "Type": "Map",
@@ -89,7 +146,7 @@
                         "method": "GET",
                         "baseUrl.$": "States.Format('${AdminApiBaseUrl}/orders/{}', $.id)"
                       },
-                      "iterations.$": "States.MathRandom(1, 15)" 
+                      "iterations.$": "States.MathRandom(1, 15)"
                     }
                   },
                   "Retry": [
@@ -232,7 +289,16 @@
       },
       "ItemsPath": "$.iterations",
       "MaxConcurrency": 10,
-      "Next": "Success"
+      "Next": "Increment Run Counter",
+      "ResultPath": null
+    },
+    "Increment Run Counter": {
+      "Type": "Pass",
+      "Next": "More Iterations?",
+      "Parameters": {
+        "numRuns.$": "$.numRuns",
+        "count.$": "States.MathAdd($.count, 1)"
+      }
     },
     "Success": {
       "Type": "Succeed"

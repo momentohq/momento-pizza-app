@@ -50,4 +50,4 @@ exports.handler = async (event) => {
       headers: { 'Access-Control-Allow-Origin': '*' }
     }
   }
-}
+};
