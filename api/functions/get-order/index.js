@@ -12,6 +12,16 @@ exports.handler = async (event) => {
   try {
     await initializeMomento();
     const start = new Date();
+    const cacheKey = process.env.RESTRICT_TO_CREATOR == 'true' ? event.pathParameters.orderId : `ADMIN-${event.pathParameters.orderId}`;
+    const cacheResult = await cacheClient.get('pizza', cacheKey);
+    if(cacheResult instanceof CacheGet.Hit){
+      return {
+        statusCode: 200,
+        body: cacheResult.valueString(),
+        headers: { 'Access-Control-Allow-Origin': '*' }
+      };
+    }
+
     const result = await ddb.send(new QueryCommand({
       TableName: process.env.TABLE_NAME,
       KeyConditionExpression: '#pk = :pk',
@@ -62,7 +72,7 @@ exports.handler = async (event) => {
     }
     
     const orderResponse = JSON.stringify(order);
-    await cacheClient.set('pizza', event.pathParameters.orderId, orderResponse);
+    await cacheClient.set('pizza', cacheKey, orderResponse);
     
     metrics.addMetric('get-order-latency', MetricUnits.Milliseconds, (new Date().getTime() - start.getTime()));
     metrics.publishStoredMetrics();

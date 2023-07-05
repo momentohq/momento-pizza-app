@@ -20,6 +20,8 @@ exports.handler = async (event) => {
         body: cacheResult.valueString(),
         headers: { 'Access-Control-Allow-Origin': '*' }
       }
+    } else if (cacheResult instanceof CacheGet.Error){
+      console.error(cacheResult.errorCode, cacheResult.message)
     }
 
     const results = await ddb.send(new QueryCommand({

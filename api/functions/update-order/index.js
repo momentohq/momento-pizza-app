@@ -81,8 +81,8 @@ exports.handler = async (event) => {
     await ddb.send(new BatchWriteItemCommand({
       RequestItems: {
         [process.env.TABLE_NAME]: [
-          ...newItems,
-          ...deleteItems
+          ...deleteItems,
+          ...newItems
         ]
       }
     }));

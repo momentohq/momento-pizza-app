@@ -79,6 +79,8 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
 
   MomentoSecret:
     Type: AWS::SecretsManager::Secret
@@ -90,6 +92,34 @@ Resources:
               "momento": "${MomentoApiToken}"
             }
           - MomentoApiToken: !Ref MomentoApiToken
+
+  StreamHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/stream-handler/
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:DescribeStream
+                - dynamodb:GetRecords
+                - dynamodb:GetShardIterator
+                - dynamodb:ListStreams
+              Resource: !Sub ${OrderTable.Arn}/stream/*
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Ref MomentoSecret
+
+  OrderTableStream:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt OrderTable.StreamArn
+      FunctionName: !GetAtt StreamHandlerFunction.Arn
+      StartingPosition: TRIM_HORIZON
+      BatchSize: 1
 
   # Order Api Functions
   AddOrderFunction:
