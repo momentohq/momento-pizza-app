@@ -21,6 +21,7 @@ Globals:
     Handler: index.handler
     Layers:
       - !Sub arn:aws:lambda:${AWS::Region}:094274105915:layer:AWSLambdaPowertoolsTypeScript:12
+      - !Ref DependencyLayer
     Environment:
       Variables:
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
@@ -51,6 +52,15 @@ Resources:
           Name: AWS::Include
           Parameters:
             Location: ./admin-openapi.yaml
+
+  DependencyLayer:
+    Type: AWS::Serverless::LayerVersion
+    Metadata:
+      BuildMethod: nodejs18.x
+    Properties:
+      ContentUri: layers/
+      CompatibleRuntimes:
+        - nodejs18.x
 
   OrderTable:
     Type: AWS::DynamoDB::Table
