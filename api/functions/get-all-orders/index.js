@@ -14,13 +14,16 @@ exports.handler = async (event) => {
     const start = new Date();
 
     const cacheResult = await cacheClient.get('pizza', 'all-orders');
-    if(cacheResult instanceof CacheGet.Hit){
+    if (cacheResult instanceof CacheGet.Hit) {
+      metrics.addMetric('get-all-orders-latency', MetricUnits.Milliseconds, (new Date().getTime() - start.getTime()));
+      metrics.addMetric('get-all-orders-cache-hit', MetricUnits.Count, 1);
+      metrics.publishStoredMetrics();
       return {
         statusCode: 200,
         body: cacheResult.valueString(),
         headers: { 'Access-Control-Allow-Origin': '*' }
       }
-    } else if (cacheResult instanceof CacheGet.Error){
+    } else if (cacheResult instanceof CacheGet.Error) {
       console.error(cacheResult.errorCode, cacheResult.message)
     }
 
@@ -48,7 +51,7 @@ exports.handler = async (event) => {
         numItems: orderData.numItems,
         ...orderData.lastUpdated && { lastUpdated: orderData.lastUpdated }
       }
-    });    
+    });
 
     orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 
@@ -56,6 +59,7 @@ exports.handler = async (event) => {
     await cacheClient.set('pizza', 'all-orders', orderResponse);
 
     metrics.addMetric('get-all-orders-latency', MetricUnits.Milliseconds, (new Date().getTime() - start.getTime()));
+    metrics.addMetric('get-all-orders-cache-miss', MetricUnits.Count, 1);
     metrics.publishStoredMetrics();
 
     return {
@@ -74,7 +78,7 @@ exports.handler = async (event) => {
 };
 
 const initializeMomento = async () => {
-  if(cacheClient){
+  if (cacheClient) {
     return;
   }
 
@@ -84,5 +88,5 @@ const initializeMomento = async () => {
     configuration: Configurations.Laptop.latest(),
     credentialProvider: CredentialProvider.fromString({ authToken: secret.momento }),
     defaultTtlSeconds: 60
-  });  
+  });
 };

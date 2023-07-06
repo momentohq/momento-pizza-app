@@ -486,6 +486,66 @@ Resources:
                             "period": 300,
                             "stat": "p99"
                         }
+                    },
+                    {
+                      "type": "metric",
+                      "x": 0,
+                      "y": 6,
+                      "width": 9,
+                      "height": 3,
+                      "properties": {
+                          "metrics": [
+                              [ "Momento", "get-my-orders-cache-miss", "service", "pizza-tracker", { "id": "m1", "label": "Cache Miss" } ],
+                              [ ".", "get-my-orders-cache-hit", ".", ".", { "id": "m2", "label": "Cache Hit" } ],
+                              [ { "expression": "100*(m2/(m1+m2))", "label": "Cache Hit %", "id": "e1" } ]
+                          ],
+                          "sparkline": true,
+                          "view": "singleValue",
+                          "region": "${region}",
+                          "stat": "Sum",
+                          "period": 60,
+                          "title": "Get My Orders Cache Hit Rate"
+                        }
+                    },
+                    {
+                      "type": "metric",
+                      "x": 9,
+                      "y": 6,
+                      "width": 9,
+                      "height": 3,
+                      "properties": {
+                          "metrics": [
+                              [ "Momento", "get-all-orders-cache-miss", "service", "pizza-tracker", { "id": "m1", "label": "Cache Miss" } ],
+                              [ ".", "get-all-orders-cache-hit", ".", ".", { "id": "m2", "label": "Cache Hit" } ],
+                              [ { "expression": "100*(m2/(m1+m2))", "label": "Cache Hit %", "id": "e1" } ]
+                          ],
+                          "sparkline": true,
+                          "view": "singleValue",
+                          "region": "${region}",
+                          "stat": "Sum",
+                          "period": 60,
+                          "title": "Get All Orders Cache Hit Rate"
+                        }
+                    },
+                    {
+                      "type": "metric",
+                      "x": 0,
+                      "y": 9,
+                      "width": 9,
+                      "height": 3,
+                      "properties": {
+                          "metrics": [
+                              [ "Momento", "get-order-cache-miss", "service", "pizza-tracker", { "id": "m1", "label": "Cache Miss" } ],
+                              [ ".", "get-order-cache-hit", ".", ".", { "id": "m2", "label": "Cache Hit" } ],
+                              [ { "expression": "100*(m2/(m1+m2))", "label": "Cache Hit %", "id": "e1" } ]
+                          ],
+                          "sparkline": true,
+                          "view": "singleValue",
+                          "region": "${region}",
+                          "stat": "Sum",
+                          "period": 60,
+                          "title": "Get Order Cache Hit Rate"
+                        }
                     }
                 ]
             }

@@ -25,54 +25,9 @@ exports.handler = async (event) => {
 const handleNewOrUpdatedCacheItem = async (record) => {
   const isOrderRecord = (record.sk == 'metadata');
   if (isOrderRecord) {
-    let item = {
-      id: record.pk,
-      createdAt: record.createdAt,
-      status: record.status,
-      numItems: record.numItems,
-      items: [],
-      ...record.lastUpdated && { lastUpdated: record.lastUpdated }
-    };
-
-    const cachedDataResponse = await cacheClient.get('pizza', item.id);
-    if (cachedDataResponse instanceof CacheGet.Hit) {
-      const cachedItem = JSON.parse(cachedDataResponse.valueString());
-      item = {
-        ...cachedItem,
-        ...item
-      };
-    }
-
-    await Promise.allSettled([
-      await cacheClient.set('pizza', item.id, JSON.stringify(item)),
-      await cacheClient.set('pizza', `ADMIN-${item.id}`, JSON.stringify({ ...item, creator: record.creator }))
-    ]);
-
-    delete item.items;
-
-    await Promise.allSettled([
-      await updateArrayCacheItem('all-orders', item),
-      await updateArrayCacheItem(record.creator, item)
-    ]);
+    await updateOrderRecord(record);
   } else {
-    const cachedDataResponse = await cacheClient.get('pizza', record.pk);
-    if (cachedDataResponse instanceof CacheGet.Hit) {
-      const cachedItem = JSON.parse(cachedDataResponse.valueString());
-      const itemIndex = record.sk.split('#')[1];
-      const item = {
-        size: record.size,
-        crust: record.crust,
-        sauce: record.sauce,
-        toppings: record.toppings || []
-      }
-      if (cachedItem.items[itemIndex]) {
-        cachedItem.items[itemIndex] = item;
-      } else {
-        cachedItem.items.push(item);
-      }
-
-      await cacheClient.set('pizza', record.pk, JSON.stringify(cachedItem));
-    }
+    await updatePizzaRecord(record);
   }
 };
 
@@ -142,4 +97,63 @@ const initializeMomento = async () => {
     credentialProvider: CredentialProvider.fromString({ authToken: secret.momento }),
     defaultTtlSeconds: 60
   });
+};
+
+async function updatePizzaRecord(record) {
+  const cachedDataResponse = await cacheClient.get('pizza', `ADMIN-${record.pk}`);
+  if (cachedDataResponse instanceof CacheGet.Hit) {
+    const cachedItem = JSON.parse(cachedDataResponse.valueString());
+    const itemIndex = record.sk.split('#')[1];
+    const item = {
+      size: record.size,
+      crust: record.crust,
+      sauce: record.sauce,
+      toppings: record.toppings || []
+    };
+    if (cachedItem.items[itemIndex]) {
+      cachedItem.items[itemIndex] = item;
+    } else {
+      cachedItem.items.push(item);
+    }
+
+    const userCacheItem = {...cachedItem};
+    delete userCacheItem.creator;
+
+    await Promise.allSettled([
+      await cacheClient.set('pizza', record.pk, JSON.stringify(userCacheItem)),
+      await cacheClient.set('pizza', `ADMIN-${record.pk}`, JSON.stringify(cachedItem))
+    ]);
+  }
+};
+
+async function updateOrderRecord(record) {
+  let item = {
+    id: record.pk,
+    createdAt: record.createdAt,
+    status: record.status,
+    numItems: record.numItems,
+    items: [],
+    ...record.lastUpdated && { lastUpdated: record.lastUpdated }
+  };
+
+  const cachedDataResponse = await cacheClient.get('pizza', item.id);
+  if (cachedDataResponse instanceof CacheGet.Hit) {
+    const cachedItem = JSON.parse(cachedDataResponse.valueString());
+    item = {
+      ...cachedItem,
+      ...item
+    };
+  }
+
+  await Promise.allSettled([
+    await cacheClient.set('pizza', item.id, JSON.stringify(item)),
+    await cacheClient.set('pizza', `ADMIN-${item.id}`, JSON.stringify({ ...item, creator: record.creator }))
+  ]);
+
+  delete item.items;
+
+  await Promise.allSettled([
+    await updateArrayCacheItem('all-orders', item),
+    await updateArrayCacheItem(record.creator, item)
+  ]);
 };

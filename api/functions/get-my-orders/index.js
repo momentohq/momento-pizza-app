@@ -15,7 +15,10 @@ exports.handler = async (event) => {
     const ipAddress = event.requestContext.identity.sourceIp;
 
     const cacheResult = await cacheClient.get('pizza', ipAddress);
-    if(cacheResult instanceof CacheGet.Hit){
+    if (cacheResult instanceof CacheGet.Hit) {
+      metrics.addMetric('get-my-orders-latency', MetricUnits.Milliseconds, (new Date().getTime() - start.getTime()));
+      metrics.addMetric('get-my-orders-cache-hit', MetricUnits.Count, 1);
+      metrics.publishStoredMetrics();
       return {
         statusCode: 200,
         body: cacheResult.valueString(),
@@ -48,13 +51,14 @@ exports.handler = async (event) => {
         ...data.lastUpdated && { lastUpdated: data.lastUpdated }
       })
     });
-    
+
     const myOrders = JSON.stringify(orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
     await cacheClient.set('pizza', ipAddress, myOrders);
 
     metrics.addMetric('get-my-orders-latency', MetricUnits.Milliseconds, (new Date().getTime() - start.getTime()));
+    metrics.addMetric('get-my-orders-cache-miss', MetricUnits.Count, 1);
     metrics.publishStoredMetrics();
-    
+
     return {
       statusCode: 200,
       body: myOrders,
@@ -71,7 +75,7 @@ exports.handler = async (event) => {
 };
 
 const initializeMomento = async () => {
-  if(cacheClient){
+  if (cacheClient) {
     return;
   }
 
@@ -81,5 +85,5 @@ const initializeMomento = async () => {
     configuration: Configurations.Laptop.latest(),
     credentialProvider: CredentialProvider.fromString({ authToken: secret.momento }),
     defaultTtlSeconds: 60
-  });  
+  });
 };

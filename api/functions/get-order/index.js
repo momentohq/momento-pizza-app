@@ -14,7 +14,10 @@ exports.handler = async (event) => {
     const start = new Date();
     const cacheKey = process.env.RESTRICT_TO_CREATOR == 'true' ? event.pathParameters.orderId : `ADMIN-${event.pathParameters.orderId}`;
     const cacheResult = await cacheClient.get('pizza', cacheKey);
-    if(cacheResult instanceof CacheGet.Hit){
+    if (cacheResult instanceof CacheGet.Hit) {
+      metrics.addMetric('get-order-latency', MetricUnits.Milliseconds, (new Date().getTime() - start.getTime()));
+      metrics.addMetric('get-order-cache-hit', MetricUnits.Count, 1);
+      metrics.publishStoredMetrics();
       return {
         statusCode: 200,
         body: cacheResult.valueString(),
@@ -70,13 +73,14 @@ exports.handler = async (event) => {
         toppings: item.toppings || []
       });
     }
-    
+
     const orderResponse = JSON.stringify(order);
     await cacheClient.set('pizza', cacheKey, orderResponse);
-    
+
     metrics.addMetric('get-order-latency', MetricUnits.Milliseconds, (new Date().getTime() - start.getTime()));
+    metrics.addMetric('get-order-cache-miss', MetricUnits.Count, 1);
     metrics.publishStoredMetrics();
-    
+
     return {
       statusCode: 200,
       body: orderResponse,
@@ -93,7 +97,7 @@ exports.handler = async (event) => {
 };
 
 const initializeMomento = async () => {
-  if(cacheClient){
+  if (cacheClient) {
     return;
   }
 
@@ -103,5 +107,5 @@ const initializeMomento = async () => {
     configuration: Configurations.Laptop.latest(),
     credentialProvider: CredentialProvider.fromString({ authToken: secret.momento }),
     defaultTtlSeconds: 60
-  });  
+  });
 };
