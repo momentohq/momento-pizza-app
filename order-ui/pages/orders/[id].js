@@ -45,7 +45,7 @@ const OrderDetail = () => {
     } 
 
     await topicClient.subscribe('pizza', `${id}-status-updated`, {
-      onItem: (data) => { console.log(JSON.parse(data.valueString()).status); updateStatus(JSON.parse(data.valueString()).status) },
+      onItem: (data) => updateStatus(JSON.parse(data.valueString()).status),
       onError: (err) => console.error(err)
     });
   };
