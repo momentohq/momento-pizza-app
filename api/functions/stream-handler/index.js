@@ -31,7 +31,7 @@ const handleNewOrUpdatedCacheItem = async (record, oldRecord) => {
       await topicClient.publish('pizza', 'new-order', JSON.stringify({ id: record.pk }));
     } else {
       const topicName = (record.status == oldRecord.status) ? `${record.pk}-updated` : `${record.pk}-status-updated`;
-      await topicClient.publish('pizza', topicName, { status: record.status });
+      await topicClient.publish('pizza', topicName, JSON.stringify({ status: record.status }));
     }
   } else {
     await updatePizzaRecord(record);
