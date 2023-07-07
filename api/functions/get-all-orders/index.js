@@ -36,6 +36,7 @@ exports.handler = async (event) => {
     orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     
     metrics.addMetric('get-all-orders-latency', MetricUnits.Milliseconds, (new Date().getTime() - start.getTime()));
+    metrics.addMetric('get-all-orders-cache-miss', MetricUnits.Count, 1);
     metrics.publishStoredMetrics();
 
     return {

@@ -57,6 +57,7 @@ exports.handler = async (event) => {
     }
     
     metrics.addMetric('get-order-latency', MetricUnits.Milliseconds, (new Date().getTime() - start.getTime()));
+    metrics.addMetric('get-order-cache-miss', MetricUnits.Count, 1);
     metrics.publishStoredMetrics();
     
     return {
