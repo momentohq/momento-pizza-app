@@ -57,8 +57,8 @@ exports.handler = async (event) => {
 
     metrics.addMetric('get-my-orders-latency', MetricUnits.Milliseconds, (new Date().getTime() - start.getTime()));
     metrics.addMetric('get-my-orders-cache-miss', MetricUnits.Count, 1);
-    metrics.publishStoredMetrics(); 
-
+    metrics.publishStoredMetrics();
+    
     return {
       statusCode: 200,
       body: myOrders,
