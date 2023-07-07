@@ -17,12 +17,18 @@ const OrderDetail = () => {
   const [crust, setCrust] = useState('hand-tossed');
   const orderRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const statusRef = useRef(status);
 
   useEffect(() => {
     if (id) {
       fetchOrder(id);
     }
   }, [id]);
+
+  const updateStatus = (s) => {
+    statusRef.current = s;
+    setStatus(s);
+  }
 
   const fetchOrder = async (orderId) => {
     try {
@@ -40,7 +46,7 @@ const OrderDetail = () => {
       setOrder(data);
       orderRef.current = data;
       changeActiveItem(0);
-      setStatus(data.status);
+      updateStatus(data.status);
     } catch (error) {
       console.error('Error fetching order:', error);
     }
@@ -199,8 +205,11 @@ const OrderDetail = () => {
         label = 'Rejected';
         variation = 'error';
         break;
-      default:
+      case 'WAITING ON CUSTOMER':
         label = 'In Cart';
+        variation = '';
+      default:
+        label = status;
         variation = '';
         break;
     };
@@ -218,7 +227,7 @@ const OrderDetail = () => {
           <Flex direction="column" alignItems="center" justifyContent="center" padding="1em" width="80%">
             <Flex direction="row" justifyContent="space-between" alignItems="center" >
               <Heading level="4">Order Details</Heading>
-              {getStatusBadge(order.status)}
+              {getStatusBadge(statusRef.current)}
             </Flex>
             <View width="100%">
               <Tabs currentIndex={activeItem} onChange={(index) => handleTabClick(index)}>
