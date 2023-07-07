@@ -19,6 +19,7 @@ x-amazon-apigateway-gateway-responses:
 
 tags:
   - name: Order
+  - name: Auth
 
 paths:
   /orders:
@@ -149,6 +150,32 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SubmitOrderFunction.Arn}/invocations
+        httpMethod: POST
+        type: aws_proxy
+
+  /tokens:
+    get:
+      summary: Gets a temporary, limited-scope token for use in a browser
+      tags:
+        - Auth
+      responses:
+        200:
+          description: A token was generated and returned to the caller
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  exp: 
+                    type: Number
+        500:
+          $ref: '#/components/responses/UnknownError'
+      x-amazon-apigateway-request-validator: Validate All
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TokenVendingMachineFunction.Arn}/invocations
         httpMethod: POST
         type: aws_proxy
 

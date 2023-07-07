@@ -1,8 +1,9 @@
 const { unmarshall } = require('@aws-sdk/util-dynamodb');
 const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
-const { CacheClient, CredentialProvider, Configurations, CacheGet } = require('@gomomento/sdk');
+const { CacheClient, CredentialProvider, Configurations, CacheGet, TopicClient } = require('@gomomento/sdk');
 const secrets = new SecretsManagerClient();
 let cacheClient;
+let topicClient;
 
 exports.handler = async (event) => {
   try {
@@ -11,7 +12,7 @@ exports.handler = async (event) => {
     switch (record.eventName) {
       case 'INSERT':
       case 'MODIFY':
-        await handleNewOrUpdatedCacheItem(unmarshall(record.dynamodb.NewImage));
+        await handleNewOrUpdatedCacheItem(unmarshall(record.dynamodb.NewImage), record.dynamodb.OldImage ? unmarshall(record.dynamodb.OldImage) : undefined);
         break;
       case 'REMOVE':
         await handleDeletedCacheItem(unmarshall(record.dynamodb.OldImage));
@@ -22,10 +23,16 @@ exports.handler = async (event) => {
   }
 };
 
-const handleNewOrUpdatedCacheItem = async (record) => {
+const handleNewOrUpdatedCacheItem = async (record, oldRecord) => {
   const isOrderRecord = (record.sk == 'metadata');
   if (isOrderRecord) {
     await updateOrderRecord(record);
+    if (!oldRecord) {
+      await topicClient.publish('pizza', 'new-order', JSON.stringify({ id: record.pk }));
+    } else {
+      const topicName = (record.status == oldRecord.status) ? `${record.pk}-updated` : `${record.pk}-status-updated`;
+      await topicClient.publish('pizza', topicName, { status: record.status });
+    }
   } else {
     await updatePizzaRecord(record);
   }
@@ -56,7 +63,8 @@ const handleDeletedCacheItem = async (record) => {
       await cacheClient.delete('pizza', record.pk),
       await cacheClient.delete('pizza', `ADMIN-${record.pk}`),
       await deleteArrayCacheItem('allOrders', record.pk),
-      await deleteArrayCacheItem(record.creator, record.pk)
+      await deleteArrayCacheItem(record.creator, record.pk),
+      await topicClient.publish('pizza', 'order-canceled', JSON.stringify({ id: record.pk }))
     ]);
   } else {
     const cachedDataResponse = await cacheClient.get('pizza', record.pk);
@@ -86,7 +94,7 @@ const deleteArrayCacheItem = async (key, itemId) => {
 };
 
 const initializeMomento = async () => {
-  if (cacheClient) {
+  if (cacheClient && topicClient) {
     return;
   }
 
@@ -96,6 +104,11 @@ const initializeMomento = async () => {
     configuration: Configurations.Laptop.latest(),
     credentialProvider: CredentialProvider.fromString({ authToken: secret.momento }),
     defaultTtlSeconds: 60
+  });
+
+  topicClient = new TopicClient({
+    configuration: Configurations.Laptop.latest(),
+    credentialProvider: CredentialProvider.fromString({ authToken: secret.momento })
   });
 };
 
@@ -116,7 +129,7 @@ async function updatePizzaRecord(record) {
       cachedItem.items.push(item);
     }
 
-    const userCacheItem = {...cachedItem};
+    const userCacheItem = { ...cachedItem };
     delete userCacheItem.creator;
 
     await Promise.allSettled([

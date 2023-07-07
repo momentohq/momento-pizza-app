@@ -333,6 +333,32 @@ Resources:
             Path: /orders/{orderId}
             Method: GET
 
+  TokenVendingMachineFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/token-vending-machine
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: 2012-10-17
+          Statement:            
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Ref MomentoSecret
+      Events:
+        AdminApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AdminApi
+            Path: /tokens
+            Method: GET
+        OrderApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref OrderApi
+            Path: /tokens
+            Method: GET
+
   # Load Generator
   DeleteOrderFunction:
     Type: AWS::Serverless::Function

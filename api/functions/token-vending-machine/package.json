@@ -1,0 +1,15 @@
+{
+  "name": "token-vending-machine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.363.0",
+    "@gomomento/sdk": "^1.26.3"
+  }
+}
