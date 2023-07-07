@@ -32,7 +32,7 @@ const OrderDetail = () => {
   const updateStatus = (s) => {
     statusRef.current = s;
     setStatus(s);
-  }
+  };
 
   const subscribeForUpdates = async (id) => {
     if (!topicClient) {
