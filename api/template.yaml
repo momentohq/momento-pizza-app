@@ -400,6 +400,101 @@ Resources:
             {
                 "widgets": [
                     {
+                        "height": 12,
+                        "width": 12,
+                        "y": 6,
+                        "x": 0,
+                        "type": "metric",
+                        "properties": {
+                            "metrics": [
+                                [ "Momento", "get-all-orders-latency-total", "service", "pizza-tracker", { "label": "get-all-orders-total", "region": "us-west-2" } ],
+                                [ ".", "get-all-orders-latency-ddb", ".", ".", { "label": "get-all-orders-ddb", "region": "us-west-2" } ],
+                                [ ".", "get-all-orders-latency-cache", ".", ".", { "label": "get-all-orders-cache", "region": "us-west-2" } ],
+                                [ ".", "get-my-orders-latency-total", ".", ".", { "label": "get-my-orders-total", "region": "us-west-2" } ],
+                                [ ".", "get-my-orders-latency-ddb", ".", ".", { "label": "get-my-orders-ddb", "region": "us-west-2" } ],
+                                [ ".", "get-my-orders-latency-cache", ".", ".", { "label": "get-my-orders-cache", "region": "us-west-2" } ],
+                                [ ".", "get-order-latency-total", ".", ".", { "region": "us-west-2", "label": "get-order-total" } ],
+                                [ ".", "get-order-latency-ddb", ".", ".", { "region": "us-west-2", "label": "get-order-ddb" } ],
+                                [ ".", "get-order-latency-cache", ".", ".", { "region": "us-west-2", "label": "get-order-cache" } ]
+                            ],
+                            "view": "timeSeries",
+                            "stacked": false,
+                            "region": "us-west-2",
+                            "stat": "Average",
+                            "period": 60,
+                            "title": "Avg Latency"
+                        }
+                    },
+                    {
+                        "height": 6,
+                        "width": 12,
+                        "y": 0,
+                        "x": 12,
+                        "type": "metric",
+                        "properties": {
+                            "metrics": [
+                                [ "Momento", "get-all-orders-latency-total", "service", "pizza-tracker", { "region": "us-west-2", "label": "get-all-orders-total Avg" } ],
+                                [ ".", "get-all-orders-latency-ddb", ".", ".", { "region": "us-west-2", "label": "get-all-orders-ddb Avg" } ],
+                                [ ".", "get-all-orders-latency-cache", ".", ".", { "region": "us-west-2", "label": "get-all-orders-cache Avg" } ],
+                                [ ".", "get-all-orders-latency-total", ".", ".", { "region": "us-west-2", "stat": "p99", "label": "get-all-orders-total p99", "color": "#1f77b4" } ],
+                                [ ".", "get-all-orders-latency-ddb", ".", ".", { "region": "us-west-2", "stat": "p99", "label": "get-all-orders-ddb p99", "color": "#ff7f0e" } ],
+                                [ ".", "get-all-orders-latency-cache", ".", ".", { "region": "us-west-2", "stat": "p99", "label": "get-all-orders-cache p99", "color": "#2ca02c" } ]
+                                ],
+                            "sparkline": true,
+                            "view": "singleValue",
+                            "region": "us-west-2",
+                            "title": "GetAllOrders Latency",
+                            "period": 300,
+                            "stat": "Average"
+                        }
+                    },
+                    {
+                        "height": 6,
+                        "width": 12,
+                        "y": 6,
+                        "x": 12,
+                        "type": "metric",
+                        "properties": {
+                            "metrics": [
+                                [ "Momento", "get-my-orders-latency-total", "service", "pizza-tracker", { "region": "us-west-2", "label": "get-my-orders-total Avg", "color": "#d62728" } ],
+                                [ ".", "get-my-orders-latency-ddb", ".", ".", { "region": "us-west-2", "label": "get-my-orders-ddb Avg", "color": "#9467bd" } ],
+                                [ ".", "get-my-orders-latency-cache", ".", ".", { "region": "us-west-2", "label": "get-my-orders-cache Avg", "color": "#8c564b" } ],
+                                [ ".", "get-my-orders-latency-total", ".", ".", { "region": "us-west-2", "stat": "p99", "label": "get-my-orders-total p99" } ],
+                                [ ".", "get-my-orders-latency-ddb", ".", ".", { "region": "us-west-2", "stat": "p99", "label": "get-my-orders-ddb p99" } ],
+                                [ ".", "get-my-orders-latency-cache", ".", ".", { "region": "us-west-2", "stat": "p99", "label": "get-my-orders-cache p99" } ]
+                            ],
+                            "sparkline": true,
+                            "view": "singleValue",
+                            "region": "us-west-2",
+                            "title": "GetMyOrders Latency",
+                            "period": 300,
+                            "stat": "Average"
+                        }
+                    },
+                    {
+                        "height": 6,
+                        "width": 12,
+                        "y": 12,
+                        "x": 12,
+                        "type": "metric",
+                        "properties": {
+                            "metrics": [
+                                [ "Momento", "get-order-latency-total", "service", "pizza-tracker", { "region": "us-west-2", "label": "get-order-total Avg", "color": "#e377c2" } ],
+                                [ ".", "get-order-latency-ddb", ".", ".", { "region": "us-west-2", "label": "get-order-ddb Avg", "color": "#7f7f7f" } ],
+                                [ ".", "get-order-latency-cache", ".", ".", { "region": "us-west-2", "label": "get-order-cache Avg", "color": "#bcbd22" } ],
+                                [ ".", "get-order-latency-total", ".", ".", { "region": "us-west-2", "stat": "p99", "label": "get-order-total p99", "color": "#e377c2" } ],
+                                [ ".", "get-order-latency-ddb", ".", ".", { "region": "us-west-2", "stat": "p99", "label": "get-order-ddb p99", "color": "#7f7f7f" } ],
+                                [ ".", "get-order-latency-cache", ".", ".", { "region": "us-west-2", "stat": "p99", "label": "get-order-cache p99", "color": "#bcbd22" } ]
+                            ],
+                            "sparkline": true,
+                            "view": "singleValue",
+                            "region": "us-west-2",
+                            "title": "GetOrder Latency",
+                            "period": 300,
+                            "stat": "Average"
+                        }
+                    },
+                    {
                         "height": 6,
                         "width": 12,
                         "y": 0,
@@ -407,114 +502,25 @@ Resources:
                         "type": "metric",
                         "properties": {
                             "metrics": [
-                                [ "Momento", "get-order-latency", "service", "pizza-tracker", { "region": "${region}" } ],
-                                [ "Momento", "get-my-orders-latency", "service", "pizza-tracker", { "region": "${region}" } ],
-                                [ "Momento", "get-all-orders-latency", "service", "pizza-tracker", { "region": "${region}" } ]
-                            ],
-                            "view": "timeSeries",
-                            "stacked": false,
-                            "region": "${region}",
-                            "stat": "Average",
-                            "period": 1,
-                            "title": "Latency Metrics"
-                        }
-                    },
-                    {
-                        "type": "metric",
-                        "x": 12,
-                        "y": 0,
-                        "width": 12,
-                        "height": 3,
-                        "properties": {
-                            "sparkline": true,
-                            "view": "singleValue",
-                            "metrics": [
-                                [ "Momento", "get-all-orders-latency", "service", "pizza-tracker" ],
-                                [ ".", "get-my-orders-latency", ".", "." ],
-                                [ ".", "get-order-latency", ".", "." ]
-                            ],
-                            "region": "${region}",
-                            "title": "Avg Latency"
-                        }
-                    },
-                    {
-                        "type": "metric",
-                        "x": 12,
-                        "y": 3,
-                        "width": 12,
-                        "height": 3,
-                        "properties": {
-                            "metrics": [
-                                [ "Momento", "get-all-orders-latency", "service", "pizza-tracker", { "region": "${region}" } ],
-                                [ ".", "get-my-orders-latency", ".", ".", { "region": "${region}" } ],
-                                [ ".", "get-order-latency", ".", ".", { "region": "${region}" } ]
+                                [ "Momento", "get-order-cache-miss", "service", "pizza-tracker", { "region": "us-west-2" } ],
+                                [ ".", "get-my-orders-cache-miss", ".", ".", { "region": "us-west-2" } ],
+                                [ ".", "get-all-orders-cache-miss", ".", ".", { "region": "us-west-2" } ]
                             ],
                             "sparkline": true,
-                            "view": "singleValue",
-                            "region": "${region}",
-                            "title": "p99 Latency",
+                            "view": "gauge",
+                            "region": "us-west-2",
+                            "title": "Cache Hit Rates",
                             "period": 300,
-                            "stat": "p99"
-                        }
-                    },
-                    {
-                      "type": "metric",
-                      "x": 0,
-                      "y": 6,
-                      "width": 9,
-                      "height": 3,
-                      "properties": {
-                          "metrics": [
-                              [ "Momento", "get-my-orders-cache-miss", "service", "pizza-tracker", { "id": "m1", "label": "Cache Miss" } ],
-                              [ ".", "get-my-orders-cache-hit", ".", ".", { "id": "m2", "label": "Cache Hit" } ],
-                              [ { "expression": "100*(m2/(m1+m2))", "label": "Cache Hit %", "id": "e1" } ]
-                          ],
-                          "sparkline": true,
-                          "view": "singleValue",
-                          "region": "${region}",
-                          "stat": "Sum",
-                          "period": 60,
-                          "title": "Get My Orders Cache Hit Rate"
-                        }
-                    },
-                    {
-                      "type": "metric",
-                      "x": 9,
-                      "y": 6,
-                      "width": 9,
-                      "height": 3,
-                      "properties": {
-                          "metrics": [
-                              [ "Momento", "get-all-orders-cache-miss", "service", "pizza-tracker", { "id": "m1", "label": "Cache Miss" } ],
-                              [ ".", "get-all-orders-cache-hit", ".", ".", { "id": "m2", "label": "Cache Hit" } ],
-                              [ { "expression": "100*(m2/(m1+m2))", "label": "Cache Hit %", "id": "e1" } ]
-                          ],
-                          "sparkline": true,
-                          "view": "singleValue",
-                          "region": "${region}",
-                          "stat": "Sum",
-                          "period": 60,
-                          "title": "Get All Orders Cache Hit Rate"
-                        }
-                    },
-                    {
-                      "type": "metric",
-                      "x": 0,
-                      "y": 9,
-                      "width": 9,
-                      "height": 3,
-                      "properties": {
-                          "metrics": [
-                              [ "Momento", "get-order-cache-miss", "service", "pizza-tracker", { "id": "m1", "label": "Cache Miss" } ],
-                              [ ".", "get-order-cache-hit", ".", ".", { "id": "m2", "label": "Cache Hit" } ],
-                              [ { "expression": "100*(m2/(m1+m2))", "label": "Cache Hit %", "id": "e1" } ]
-                          ],
-                          "sparkline": true,
-                          "view": "singleValue",
-                          "region": "${region}",
-                          "stat": "Sum",
-                          "period": 60,
-                          "title": "Get Order Cache Hit Rate"
+                            "stat": "p99",
+                            "legend": {
+                                "position": "bottom"
+                            },
+                            "yAxis": {
+                                "left": {
+                                    "min": 0,
+                                    "max": 100
+                                }
+                            }
                         }
                     }
                 ]
