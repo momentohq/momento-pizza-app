@@ -81,7 +81,7 @@
             "Parameters": {
               "FunctionName": "${GenerateOrders}",
               "Payload": {
-                "numOrders.$": "States.MathRandom(3, 8)"
+                "numOrders.$": 6
               }
             },
             "Retry": [
