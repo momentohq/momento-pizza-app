@@ -81,7 +81,7 @@
             "Parameters": {
               "FunctionName": "${GenerateOrders}",
               "Payload": {
-                "numOrders.$": 6
+                "numOrders.$": "States.MathRandom(6,6)"
               }
             },
             "Retry": [
@@ -151,7 +151,7 @@
                         "method": "GET",
                         "baseUrl.$": "States.Format('${AdminApiBaseUrl}/orders/{}', $.id)"
                       },
-                      "iterations.$": 10
+                      "iterations.$": "States.MathRandom(10,10)"
                     }
                   },
                   "Retry": [
