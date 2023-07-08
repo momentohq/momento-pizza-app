@@ -3,7 +3,7 @@
     {
       "Source": "momento.pizza",
       "DetailType": "Load Generator",
-      "Detail": "{\"numRuns\":2}"
+      "Detail": "{\"numRuns\":35}"
     }
   ]
 }
