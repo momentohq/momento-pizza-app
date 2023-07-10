@@ -47,7 +47,7 @@ const updateArrayCacheItem = async (key, item) => {
     if (index < -1) {
       cachedArray[index] = { ...cachedArray[index], ...item }
     } else {
-      cachedArray.push(item);
+      cachedArray.unshift(item);
     }
   } else {
     cachedArray = [item];

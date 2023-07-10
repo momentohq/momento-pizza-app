@@ -4,14 +4,18 @@ import { Table, TableBody, TableCell, TableHead, TableRow, Button, Badge, Headin
 import { useRouter } from 'next/navigation';
 import Head from 'next/head';
 import { MdOutlineNavigateNext, MdRefresh } from 'react-icons/md';
+import { TopicClient, Configurations, CredentialProvider } from '@gomomento/sdk-web';
 
 const Home = () => {
   const [orders, setOrders] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
-  const router = useRouter();  
+  const router = useRouter();
+
+  let topicClient;
 
   useEffect(() => {
     fetchOrders();
+    subscribeForUpdates();
   }, []);
 
   const fetchOrders = async () => {
@@ -25,6 +29,27 @@ const Home = () => {
     } finally {
       setIsFetching(false);
     }
+  };
+
+  const subscribeForUpdates = async () => {
+    if (!topicClient) {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API}/tokens`);
+      const data = await response.json();
+      topicClient = new TopicClient({
+        configuration: Configurations.Laptop.latest(),
+        credentialProvider: CredentialProvider.fromString({ authToken: data.token })
+      });
+    }
+
+    await topicClient.subscribe('pizza', 'new-order', {
+      onItem: () => { fetchOrders() },
+      onError: (err) => console.error(err)
+    });
+
+    await topicClient.subscribe('pizza', 'order-canceled', {
+      onItem: () => { fetchOrders() },
+      onError: (err) => console.error(err)
+    });
   };
 
   const goToOrderDetail = (orderId) => {
