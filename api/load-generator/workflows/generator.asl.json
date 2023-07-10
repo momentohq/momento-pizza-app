@@ -63,7 +63,7 @@
       "Parameters": {
         "numRuns.$": "$.numRuns",
         "count.$": "$.count",
-        "iterations": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50]
+        "iterations": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
       }
     },
     "Run Iteration": {
@@ -81,7 +81,7 @@
             "Parameters": {
               "FunctionName": "${GenerateOrders}",
               "Payload": {
-                "numOrders.$": "States.MathRandom(1, 25)"
+                "numOrders.$": "States.MathRandom(6,6)"
               }
             },
             "Retry": [
@@ -134,6 +134,11 @@
                       "BackoffRate": 2
                     }
                   ],
+                  "Next": "Wait"
+                },
+                "Wait": {
+                  "Type": "Wait",
+                  "Seconds": 1,
                   "Next": "Get Order"
                 },
                 "Get Order": {
@@ -146,7 +151,7 @@
                         "method": "GET",
                         "baseUrl.$": "States.Format('${AdminApiBaseUrl}/orders/{}', $.id)"
                       },
-                      "iterations.$": "States.MathRandom(1, 15)"
+                      "iterations.$": "States.MathRandom(10,10)"
                     }
                   },
                   "Retry": [
