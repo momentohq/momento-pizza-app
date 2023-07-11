@@ -70,27 +70,25 @@ exports.handler = async (event) => {
     });
     
     orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const orderResponse = JSON.stringify(orders);
 
     // Record latency results for the DynamoDB Query
     metrics.addMetric('get-all-orders-latency-ddb', MetricUnits.Milliseconds, (new Date().getTime() - ddbstart.getTime()));
 
     /* Enable for Caching
-    // Construct the value for writing back to the cache
-    const orderResponse = JSON.stringify(orders);
-
     await cacheClient.set('pizza', 'all-orders', orderResponse);
     */
-
-    // Record the cache check as a miss
-    metrics.addMetric('get-all-orders-cache-miss', MetricUnits.Count, 1);
   
     // Close out the total latency metric and publish to CW
     metrics.addMetric('get-all-orders-latency-total', MetricUnits.Milliseconds, (new Date().getTime() - totalstart.getTime()))
+    
+    // Record the cache check as a miss
+    metrics.addMetric('get-all-orders-cache-miss', MetricUnits.Count, 1);
     metrics.publishStoredMetrics();
 
     return {
       statusCode: 200,
-      body: JSON.stringify(orders),
+      body: orderResponse,
       headers: { 'Access-Control-Allow-Origin': '*' }
     };
   } catch (err) {
@@ -106,7 +104,7 @@ exports.handler = async (event) => {
 /* Enable for Caching
 // Setup the connection to Momento Cache - but only if it isn't already present.
 const initializeMomento = async () => {
-  if(cacheClient){
+  if (cacheClient) {
     return;
   };
 
