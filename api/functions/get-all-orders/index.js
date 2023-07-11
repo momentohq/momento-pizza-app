@@ -18,7 +18,7 @@ exports.handler = async (event) => {
     await initializeMomento();
 
     // Record the time stamp of the beginning of the cache check
-    const momstart = new Date();
+    const momentoStart = new Date();
 
     // Check for the item in the cache
     const cacheResult = await cacheClient.get('pizza', 'all-orders');
@@ -26,7 +26,7 @@ exports.handler = async (event) => {
     // If the item is found in the cache, record metric for end of cache operation latency and record as a cache hit.
     // Close out total latency metric. Publish to CloudWatch, then return the result to the API call and close out the function.
     if (cacheResult instanceof CacheGet.Hit) {
-      metrics.addMetric('get-all-orders-latency-cache', MetricUnits.Milliseconds, (new Date().getTime() - momstart.getTime()));
+      metrics.addMetric('get-all-orders-latency-cache', MetricUnits.Milliseconds, (new Date().getTime() - momentoStart.getTime()));
       metrics.addMetric('get-all-orders-cache-hit', MetricUnits.Count, 1);
       metrics.addMetric('get-order-latency-total', MetricUnits.Milliseconds, (new Date().getTime() - totalstart.getTime()));
       metrics.publishStoredMetrics();
@@ -66,23 +66,19 @@ exports.handler = async (event) => {
     });
 
     orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const orderResponse = JSON.stringify(orders);
 
     // Record latency results for the DynamoDB Query
     metrics.addMetric('get-all-orders-latency-ddb', MetricUnits.Milliseconds, (new Date().getTime() - ddbstart.getTime()));
 
-    // Construct the value for writing back to the cache
-    const orderResponse = JSON.stringify(orders);
-
-    // Record the cache check as a miss
-    metrics.addMetric('get-all-orders-cache-miss', MetricUnits.Count, 1);
-
     await cacheClient.set('pizza', 'all-orders', orderResponse);
 
-    // Record the cache check as a miss
-    metrics.addMetric('get-all-orders-cache-miss', MetricUnits.Count, 1);
-  
     // Close out the total latency metric and publish to CW
     metrics.addMetric('get-all-orders-latency-total', MetricUnits.Milliseconds, (new Date().getTime() - totalstart.getTime()))
+
+    // Record the cache check as a miss
+    metrics.addMetric('get-all-orders-cache-miss', MetricUnits.Count, 1);
+
     metrics.publishStoredMetrics();
 
     return {
