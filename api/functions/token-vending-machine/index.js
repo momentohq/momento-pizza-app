@@ -53,7 +53,7 @@ const initializeMomento = async () => {
   const secretResponse = await secrets.send(new GetSecretValueCommand({ SecretId: process.env.SECRET_ID }));
   const secret = JSON.parse(secretResponse.SecretString);
   cacheClient = new CacheClient({
-    configuration: Configurations.Laptop.latest(),
+    configuration: Configurations.InRegion.Default.latest(),
     credentialProvider: CredentialProvider.fromString({ authToken: secret.momento }),
     defaultTtlSeconds: 3300
   });
