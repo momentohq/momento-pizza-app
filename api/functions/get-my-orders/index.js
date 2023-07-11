@@ -12,7 +12,7 @@ exports.handler = async (event) => {
   try {
     const totalstart = new Date();
 
-    // Track customer by source IP Address
+    // Determine the cache item key we are interested in - tracking customer by source IP for this example
     const ipAddress = event.requestContext.identity.sourceIp;
 
     // Initialize Momento session

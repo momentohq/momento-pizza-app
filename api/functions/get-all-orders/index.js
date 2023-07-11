@@ -78,6 +78,9 @@ exports.handler = async (event) => {
 
     await cacheClient.set('pizza', 'all-orders', orderResponse);
 
+    // Record the cache check as a miss
+    metrics.addMetric('get-all-orders-cache-miss', MetricUnits.Count, 1);
+  
     // Close out the total latency metric and publish to CW
     metrics.addMetric('get-all-orders-latency-total', MetricUnits.Milliseconds, (new Date().getTime() - totalstart.getTime()))
     metrics.publishStoredMetrics();
