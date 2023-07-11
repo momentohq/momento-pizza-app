@@ -1,4 +1,4 @@
-const { DynamoDBClient, BatchWriteItemCommand } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
 const { marshall } = require('@aws-sdk/util-dynamodb');
 const ddb = new DynamoDBClient();
 
@@ -9,48 +9,28 @@ exports.handler = async (event, context) => {
 
     const input = JSON.parse(event.body);
     const timestamp = new Date().toISOString();
-    const orderMetadata = {
+    const item = {
       pk: id,
       sk: 'metadata',
       createdAt: timestamp,
       type: 'order', //GSI PK
       creator: ipAddress, //GSI SK
       numItems: input.items.length,
-      status: 'WAITING ON CUSTOMER'
+      status: 'WAITING ON CUSTOMER',
+      items: input.items.map(i => {
+        return {
+          size: i.size,
+          crust: i.crust,
+          toppings: i.toppings,
+          sauce: i.sauce
+        }
+      })
     };
 
-    const orderItems = input.items.map((item, index) => {
-      return {
-        PutRequest: {
-          Item: marshall(
-            {
-              pk: id,
-              sk: `item#${index}`,
-              size: item.size,
-              crust: item.crust,
-              toppings: item.toppings,
-              sauce: item.sauce,
-              lastUpdate: timestamp
-            }
-          )
-        }
-      };
-    });
-
-    const command = new BatchWriteItemCommand({
-      RequestItems: {
-        [process.env.TABLE_NAME]: [
-          {
-            PutRequest: {
-              Item: marshall(orderMetadata)
-            }
-          },
-          ...orderItems
-        ]
-      }
-    });
-
-    await ddb.send(command);
+    await ddb.send(new PutItemCommand({
+      TableName: process.env.TABLE_NAME,
+      Item: marshall(item)
+    }));
 
     return {
       statusCode: 201,
