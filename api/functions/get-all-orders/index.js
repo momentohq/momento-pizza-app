@@ -21,7 +21,7 @@ exports.handler = async (event) => {
     await initializeMomento();
 
     // Record the time stamp of the beginning of the cache check
-    const momstart = new Date();
+    const momentoStart = new Date();
 
     // Check for the item in the cache
     const cacheResult = await cacheClient.get('pizza', 'all-orders');
@@ -29,7 +29,7 @@ exports.handler = async (event) => {
     // If the item is found in the cache, record metric for end of cache operation latency and record as a cache hit.
     // Close out total latency metric. Publish to CloudWatch, then return the result to the API call and close out the function.
     if(cacheResult instanceof CacheGet.Hit){
-      metrics.addMetric('get-all-orders-latency-cache', MetricUnits.Milliseconds, (new Date().getTime() - momstart.getTime()));
+      metrics.addMetric('get-all-orders-latency-cache', MetricUnits.Milliseconds, (new Date().getTime() - momentoStart.getTime()));
       metrics.addMetric('get-all-orders-cache-hit', MetricUnits.Count, 1);
       metrics.addMetric('get-order-latency-total', MetricUnits.Milliseconds, (new Date().getTime() - totalstart.getTime()));
       metrics.publishStoredMetrics();
