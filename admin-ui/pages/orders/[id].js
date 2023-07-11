@@ -73,7 +73,7 @@ const OrderDetail = () => {
   };
 
   const updateStatus = async (status) => {
-    await fetch(`${NEXT_PUBLIC_ADMIN_API}/orders/${id}/statuses`, {
+    await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API}/orders/${id}/statuses`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
