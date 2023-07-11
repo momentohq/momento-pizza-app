@@ -14,6 +14,9 @@ exports.handler = async (event) => {
   try {
     const totalstart = new Date();
 
+    // Track customer by source IP Address
+    const ipAddress = event.requestContext.identity.sourceIp;
+
     /* Enable for Caching
     // Initialize Momento session
     await initializeMomento();
@@ -21,8 +24,7 @@ exports.handler = async (event) => {
     // Record the time stamp of the beginning of the cache check
     const momstart = new Date();
 
-    // Determine the cache item key we are interested in - tracking customer by source IP for this example
-    const ipAddress = event.requestContext.identity.sourceIp;
+    
 
     // Check for the item in the cache
     const cacheResult = await cacheClient.get('pizza', ipAddress);

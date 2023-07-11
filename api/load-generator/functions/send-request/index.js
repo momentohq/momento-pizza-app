@@ -14,7 +14,11 @@ exports.handler = async (state) => {
     return responses[0];
   }
 
-  return responses;
+  if (state.discardResults) {
+    return { success: true }
+  } else {
+    return responses;
+  }
 };
 
 const getAxiosConfig = (state) => {
