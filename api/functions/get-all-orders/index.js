@@ -78,12 +78,12 @@ exports.handler = async (event) => {
     // Construct the value for writing back to the cache
     const orderResponse = JSON.stringify(orders);
 
-    // Record the cache check as a miss
-    metrics.addMetric('get-all-orders-cache-miss', MetricUnits.Count, 1);
-  
     await cacheClient.set('pizza', 'all-orders', orderResponse);
     */
 
+    // Record the cache check as a miss
+    metrics.addMetric('get-all-orders-cache-miss', MetricUnits.Count, 1);
+  
     // Close out the total latency metric and publish to CW
     metrics.addMetric('get-all-orders-latency-total', MetricUnits.Milliseconds, (new Date().getTime() - totalstart.getTime()))
     metrics.publishStoredMetrics();
