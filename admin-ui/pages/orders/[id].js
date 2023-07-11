@@ -8,6 +8,7 @@ import Header from '@/components/Header';
 import { Inter } from 'next/font/google'
 const inter = Inter({ subsets: ['latin'] });
 import '@aws-amplify/ui-react/styles.css';
+import { TopicClient, Configurations, CredentialProvider } from '@gomomento/sdk-web';
 
 const OrderDetail = () => {
   const [order, setOrder] = useState(null);
@@ -17,10 +18,12 @@ const OrderDetail = () => {
 
   const router = useRouter();
   const { id } = router.query;
+  let topicClient;
 
   useEffect(() => {
     if (id) {
       fetchOrderDetail();
+      subscribeForUpdates(id);
     }
   }, [id]);
 
@@ -33,6 +36,28 @@ const OrderDetail = () => {
       console.error('Error fetching order detail:', error);
     }
   };
+
+  const subscribeForUpdates = async (id) => {
+    if (!topicClient) {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API}/tokens`);
+      const data = await response.json();
+      topicClient = new TopicClient({
+        configuration: Configurations.Laptop.latest(),
+        credentialProvider: CredentialProvider.fromString({ authToken: data.token })
+      });
+    }
+
+    await topicClient.subscribe('pizza', `${id}-updated`, {
+      onItem: () => { fetchOrderDetail() },
+      onError: (err) => console.error(err)
+    });
+
+    await topicClient.subscribe('pizza', `${id}-status-updated`, {
+      onItem: () => { fetchOrderDetail() },
+      onError: (err) => console.error(err)
+    });
+  };
+
 
   const handleStartOrder = async () => {
     setIsStarting(true)

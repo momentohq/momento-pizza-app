@@ -140,7 +140,7 @@ const initializeMomento = async () => {
 
   // Initialize Momento Cache session using default tuning for in-region clients, token from secrets manager, and a default TTL of 60s
   cacheClient = new CacheClient({
-    configuration: Configurations.InRegionDefault.latest(),
+    configuration: Configurations.InRegion.latest(),
     credentialProvider: CredentialProvider.fromString({ authToken: secret.momento }),
     defaultTtlSeconds: 60
   });
