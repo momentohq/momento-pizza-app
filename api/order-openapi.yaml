@@ -197,6 +197,7 @@ components:
       properties:
         items:
           type: array
+          maxItems: 6
           items:
             $ref: '#/components/schemas/Pizza'
     

@@ -141,7 +141,7 @@ Resources:
         - Version: 2012-10-17
           Statement:
             - Effect: Allow
-              Action: dynamodb:BatchWriteItem
+              Action: dynamodb:PutItem
               Resource: !GetAtt OrderTable.Arn
       Environment:
         Variables:
@@ -189,7 +189,7 @@ Resources:
         - Version: 2012-10-17
           Statement:
             - Effect: Allow
-              Action: dynamodb:Query
+              Action: dynamodb:GetItem
               Resource: !GetAtt OrderTable.Arn
             - Effect: Allow
               Action:
@@ -218,7 +218,6 @@ Resources:
             - Effect: Allow
               Action: 
                 - dynamodb:UpdateItem
-                - dynamodb:BatchWriteItem
               Resource: !GetAtt OrderTable.Arn
       Environment:
         Variables:
@@ -315,7 +314,7 @@ Resources:
         - Version: 2012-10-17
           Statement:
             - Effect: Allow
-              Action: dynamodb:Query
+              Action: dynamodb:GetItem
               Resource: !GetAtt OrderTable.Arn
             - Effect: Allow
               Action:
@@ -360,23 +359,6 @@ Resources:
             Method: GET
 
   # Load Generator
-  DeleteOrderFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: load-generator/functions/delete-order
-      Policies:
-        - AWSLambdaBasicExecutionRole
-        - Version: 2012-10-17
-          Statement:
-            - Effect: Allow
-              Action: 
-                - dynamodb:Query
-                - dynamodb:BatchWriteItem
-              Resource: !GetAtt OrderTable.Arn
-      Environment:
-        Variables:
-          TABLE_NAME: !Ref OrderTable
-  
   GenerateOrdersFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -394,16 +376,50 @@ Resources:
 
   GeneratorStateMachine:
     Type: AWS::Serverless::StateMachine
-    Properties:
-      Type: EXPRESS
+    Properties:      
       DefinitionUri: load-generator/workflows/generator.asl.json
+      DefinitionSubstitutions:
+        SFNStartSyncExecution: !Sub arn:${AWS::Partition}:states:::states:startExecution.sync:2
+        OrderWorkflow: !Ref OrderWorkflowStateMachine
+      Policies:
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action: states:StartExecution
+              Resource: !Ref OrderWorkflowStateMachine
+            - Effect: Allow
+              Action:
+                - states:DescribeExecution
+                - states:StopExecution
+              Resource: !Sub arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:execution:${OrderWorkflowStateMachine.Name}:*
+            - Effect: Allow
+              Action:
+                - events:PutTargets
+                - events:PutRule
+                - events:DescribeRule
+              Resource: !Sub arn:${AWS::Partition}:events:${AWS::Region}:${AWS::AccountId}:rule/StepFunctionsGetEventsForStepFunctionsExecutionRule
+      Events:
+        StartEvent:
+          Type: EventBridgeRule
+          Properties:
+            Pattern:
+              detail-type:
+                - Load Generator
+              source:
+                - momento.pizza      
+
+  OrderWorkflowStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:      
+      DefinitionUri: load-generator/workflows/order-workflow.asl.json
       DefinitionSubstitutions:
         LambdaInvoke: !Sub arn:${AWS::Partition}:states:::lambda:invoke
         GenerateOrders: !GetAtt GenerateOrdersFunction.Arn
         SendRequest: !GetAtt SendRequestFunction.Arn
-        DeleteOrder: !GetAtt DeleteOrderFunction.Arn
         OrderApiBaseUrl: !Sub https://${OrderApi}.execute-api.${AWS::Region}.amazonaws.com/dev
         AdminApiBaseUrl: !Sub https://${AdminApi}.execute-api.${AWS::Region}.amazonaws.com/dev
+        DynamoDbDeleteItem: !Sub arn:${AWS::Partition}:states:::dynamodb:deleteItem
+        TableName: !Ref OrderTable
       Policies:
         - Version: 2012-10-17
           Statement:
@@ -412,7 +428,9 @@ Resources:
               Resource:
                 - !GetAtt GenerateOrdersFunction.Arn
                 - !GetAtt SendRequestFunction.Arn
-                - !GetAtt DeleteOrderFunction.Arn
+            - Effect: Allow
+              Action: dynamodb:DeleteItem
+              Resource: !GetAtt OrderTable.Arn
             - Effect: Allow
               Action:
                 - logs:CreateLogDelivery
@@ -423,24 +441,15 @@ Resources:
                 - logs:PutResourcePolicy
                 - logs:DescribeResourcePolicies
                 - logs:DescribeLogGroups
-              Resource: "*"  
-      Events:
-        StartEvent:
-          Type: EventBridgeRule
-          Properties:
-            Pattern:
-              detail-type:
-                - Load Generator
-              source:
-                - momento.pizza
+              Resource: "*"       
       Logging:
         Level: ALL
         IncludeExecutionData: true
         Destinations:
           - CloudWatchLogsLogGroup:
-              LogGroupArn: !GetAtt GeneratorLogGroup.Arn
+              LogGroupArn: !GetAtt OrderWorkflowLogGroup.Arn
 
-  GeneratorLogGroup:
+  OrderWorkflowLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       RetentionInDays: 30

@@ -1,4 +1,4 @@
-const { DynamoDBClient, QueryCommand } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBClient, GetItemCommand } = require('@aws-sdk/client-dynamodb');
 const { Metrics, MetricUnits } = require('@aws-lambda-powertools/metrics');
 const { marshall, unmarshall } = require('@aws-sdk/util-dynamodb');
 const ddb = new DynamoDBClient();
@@ -24,7 +24,7 @@ exports.handler = async (event) => {
     const orderId = event.pathParameters.orderId;
 
     // Check for the item in the cache
-    const cacheKey = process.env.RESTRICT_TO_CREATOR == 'true' ? event.pathParameters.orderId : `ADMIN-${event.pathParameters.orderId}`;
+    const cacheKey = process.env.RESTRICT_TO_CREATOR == 'true' ? orderId : `ADMIN-${orderId}`;
     const cacheResult = await cacheClient.get('pizza', cacheKey);
 
     // If the item is found in the cache, record metric for end of cache operation latency and record as a cache hit.
@@ -44,18 +44,15 @@ exports.handler = async (event) => {
     // Item was not found in the cache - so we'll check the database instead.
     const ddbstart = new Date();
 
-    const result = await ddb.send(new QueryCommand({
+    const result = await ddb.send(new GetItemCommand({
       TableName: process.env.TABLE_NAME,
-      KeyConditionExpression: '#pk = :pk',
-      ExpressionAttributeNames: {
-        '#pk': 'pk'
-      },
-      ExpressionAttributeValues: marshall({
-        ':pk': event.pathParameters.orderId
+      Key: marshall({
+        pk: event.pathParameters.orderId,
+        sk: 'metadata'
       })
     }));
 
-    if (!result.Items.length) {
+    if (!result.Item) {
       // Not found in database - close out the total latency metric (includes cache miss, database read) and publish to CW.
       metrics.addMetric('get-order-latency-total', MetricUnits.Milliseconds, (new Date().getTime() - totalstart.getTime()));
       metrics.publishStoredMetrics();
@@ -66,9 +63,8 @@ exports.handler = async (event) => {
       };
     }
 
-    const data = result.Items.map(item => unmarshall(item));
-    const metadata = data.find(d => d.sk == 'metadata');
-    if (process.env.RESTRICT_TO_CREATOR == 'true' && metadata?.creator !== event.requestContext.identity.sourceIp) {
+    const data = unmarshall(result.Item)
+    if (process.env.RESTRICT_TO_CREATOR == 'true' && data?.creator !== event.requestContext.identity.sourceIp) {
       // The user is not the creator of this order.
       // Close out the total latency metric (includes cache miss, database read) and publish to CW.
       metrics.addMetric('get-order-latency-total', MetricUnits.Milliseconds, (new Date().getTime() - totalstart.getTime()));
@@ -82,26 +78,16 @@ exports.handler = async (event) => {
     }
 
     const order = {
-      id: metadata.pk,
-      createdAt: metadata.createdAt,
-      numItems: metadata.numItems,
-      status: metadata.status,
-      items: [],
-      ...(process.env.RESTRICT_TO_CREATOR == 'false') && { creator: metadata.creator }
+      id: data.pk,
+      createdAt: data.createdAt,
+      numItems: data.numItems,
+      status: data.status,
+      items: data.items,
+      ...(process.env.RESTRICT_TO_CREATOR == 'false') && { creator: data.creator }
     };
 
-    // Build out the value that we'll store in the cache.
+    // Build out the value that we'll return and ultimately store in the cache.
     const orderResponse = JSON.stringify(order);
-
-    const items = data.filter(d => d.sk.startsWith('item#'));
-    for (const item of items) {
-      order.items.push({
-        size: item.size,
-        crust: item.crust,
-        sauce: item.sauce,
-        toppings: item.toppings || []
-      });
-    }
 
     metrics.addMetric('get-order-latency-ddb', MetricUnits.Milliseconds, (new Date().getTime() - ddbstart.getTime()));
     metrics.addMetric('get-order-cache-miss', MetricUnits.Count, 1);

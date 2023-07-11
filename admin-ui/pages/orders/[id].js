@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { Inter } from 'next/font/google'
 const inter = Inter({ subsets: ['latin'] });
+import { Layout } from '@/app/layout';
 import '@aws-amplify/ui-react/styles.css';
 import { TopicClient, Configurations, CredentialProvider } from '@gomomento/sdk-web';
 
