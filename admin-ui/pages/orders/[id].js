@@ -59,7 +59,6 @@ const OrderDetail = () => {
     });
   };
 
-
   const handleStartOrder = async () => {
     setIsStarting(true)
     try {
