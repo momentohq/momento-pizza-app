@@ -71,25 +71,24 @@ exports.handler = async (event) => {
       })
     });
 
-    /* Enable for Caching
-    const orderResponse = JSON.stringify(orders);
-    */
-
     metrics.addMetric('get-my-orders-latency-ddb', MetricUnits.Milliseconds, (new Date().getTime() - ddbstart.getTime()));
     metrics.addMetric('get-my-orders-cache-miss', MetricUnits.Count, 1);
-
-    /* Enable for Caching
-    // Copy the data into the proper cache item (ready for next read)
-    await cacheClient.set('pizza', ipAddress, orderResponse);
-    */
 
     // Close out the total latency metric (includes cache miss, database read, copy to cache) and publish to CW.
     metrics.addMetric('get-my-orders-latency-total', MetricUnits.Milliseconds, (new Date().getTime() - totalstart.getTime()));
     metrics.publishStoredMetrics();
     
+    orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const orderResponse = JSON.stringify(orders);
+    
+    /* Enable for Caching
+    // Copy the data into the proper cache item (ready for next read)    
+    await cacheClient.set('pizza', ipAddress, orderResponse);
+    */
+
     return {
       statusCode: 200,
-      body: JSON.stringify(orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))),
+      body: orderResponse,
       headers: { 'Access-Control-Allow-Origin': '*' }
     };
   } catch (err) {
@@ -115,7 +114,7 @@ const initializeMomento = async () => {
 
   // Initialize Momento Cache session using default tuning for in-region clients, token from secrets manager, and a default TTL of 60s
   cacheClient = new CacheClient({
-    configuration: Configurations.Laptop.latest(),
+    configuration: Configurations.InRegion.Default.latest(),
     credentialProvider: CredentialProvider.fromString({ authToken: secret.momento }),
     defaultTtlSeconds: 60
   });
