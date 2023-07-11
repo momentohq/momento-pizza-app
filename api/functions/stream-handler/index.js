@@ -24,17 +24,12 @@ exports.handler = async (event) => {
 };
 
 const handleNewOrUpdatedCacheItem = async (record, oldRecord) => {
-  const isOrderRecord = (record.sk == 'metadata');
-  if (isOrderRecord) {
-    await updateOrderRecord(record);
-    if (!oldRecord) {
-      await topicClient.publish('pizza', 'new-order', JSON.stringify({ id: record.pk }));
-    } else {
-      const topicName = (record.status == oldRecord.status) ? `${record.pk}-updated` : `${record.pk}-status-updated`;
-      await topicClient.publish('pizza', topicName, JSON.stringify({ status: record.status }));
-    }
+  await updateOrderRecord(record);
+  if (!oldRecord) {
+    await topicClient.publish('pizza', 'new-order', JSON.stringify({ id: record.pk }));
   } else {
-    await updatePizzaRecord(record);
+    const topicName = (record.status == oldRecord.status) ? `${record.pk}-updated` : `${record.pk}-status-updated`;
+    await topicClient.publish('pizza', topicName, JSON.stringify({ status: record.status }));
   }
 };
 
@@ -57,27 +52,13 @@ const updateArrayCacheItem = async (key, item) => {
 };
 
 const handleDeletedCacheItem = async (record) => {
-  const isOrderRecord = (record.sk == 'metadata');
-  if (isOrderRecord) {
-    await Promise.allSettled([
-      await cacheClient.delete('pizza', record.pk),
-      await cacheClient.delete('pizza', `ADMIN-${record.pk}`),
-      await deleteArrayCacheItem('allOrders', record.pk),
-      await deleteArrayCacheItem(record.creator, record.pk),
-      await topicClient.publish('pizza', 'order-canceled', JSON.stringify({ id: record.pk }))
-    ]);
-  } else {
-    const cachedDataResponse = await cacheClient.get('pizza', record.pk);
-    if (cachedDataResponse instanceof CacheGet.Hit) {
-      // When orders are updated, all items are deleted then re-added. So we can clear all items out
-      // from the cache when we see a delete because they are about to be re-added.
-      const cachedItem = JSON.parse(cachedDataResponse.valueString());
-      await Promise.allSettled([
-        await cacheClient.set('pizza', record.pk, JSON.stringify({ ...cachedItem, items: [] })),
-        await cacheClient.set('pizza', `ADMIN-${record.pk}`, JSON.stringify({ ...cachedItem, creator: record.creator, items: [] }))
-      ]);
-    }
-  }
+  await Promise.allSettled([
+    await cacheClient.delete('pizza', record.pk),
+    await cacheClient.delete('pizza', `ADMIN-${record.pk}`),
+    await deleteArrayCacheItem('allOrders', record.pk),
+    await deleteArrayCacheItem(record.creator, record.pk),
+    await topicClient.publish('pizza', 'order-canceled', JSON.stringify({ id: record.pk }))
+  ]);
 };
 
 const deleteArrayCacheItem = async (key, itemId) => {
@@ -112,51 +93,15 @@ const initializeMomento = async () => {
   });
 };
 
-async function updatePizzaRecord(record) {
-  const cachedDataResponse = await cacheClient.get('pizza', `ADMIN-${record.pk}`);
-  if (cachedDataResponse instanceof CacheGet.Hit) {
-    const cachedItem = JSON.parse(cachedDataResponse.valueString());
-    const itemIndex = record.sk.split('#')[1];
-    const item = {
-      size: record.size,
-      crust: record.crust,
-      sauce: record.sauce,
-      toppings: record.toppings || []
-    };
-    if (cachedItem.items[itemIndex]) {
-      cachedItem.items[itemIndex] = item;
-    } else {
-      cachedItem.items.push(item);
-    }
-
-    const userCacheItem = { ...cachedItem };
-    delete userCacheItem.creator;
-
-    await Promise.allSettled([
-      await cacheClient.set('pizza', record.pk, JSON.stringify(userCacheItem)),
-      await cacheClient.set('pizza', `ADMIN-${record.pk}`, JSON.stringify(cachedItem))
-    ]);
-  }
-};
-
 async function updateOrderRecord(record) {
   let item = {
     id: record.pk,
     createdAt: record.createdAt,
     status: record.status,
     numItems: record.numItems,
-    items: [],
+    items: record.items,
     ...record.lastUpdated && { lastUpdated: record.lastUpdated }
   };
-
-  const cachedDataResponse = await cacheClient.get('pizza', item.id);
-  if (cachedDataResponse instanceof CacheGet.Hit) {
-    const cachedItem = JSON.parse(cachedDataResponse.valueString());
-    item = {
-      ...cachedItem,
-      ...item
-    };
-  }
 
   await Promise.allSettled([
     await cacheClient.set('pizza', item.id, JSON.stringify(item)),

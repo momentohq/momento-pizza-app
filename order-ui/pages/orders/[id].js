@@ -228,6 +228,7 @@ const OrderDetail = () => {
       case 'WAITING ON CUSTOMER':
         label = 'In Cart';
         variation = '';
+        break;
       default:
         label = status;
         variation = '';
