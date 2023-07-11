@@ -67,7 +67,6 @@ exports.handler = async (event) => {
       })
     });
 
-
     metrics.addMetric('get-my-orders-latency-ddb', MetricUnits.Milliseconds, (new Date().getTime() - ddbstart.getTime()));
     metrics.addMetric('get-my-orders-cache-miss', MetricUnits.Count, 1);
 
@@ -78,6 +77,7 @@ exports.handler = async (event) => {
     orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     const orderResponse = JSON.stringify(orders);
     await cacheClient.set('pizza', ipAddress, orderResponse);
+    
     return {
       statusCode: 200,
       body: orderResponse,
@@ -105,7 +105,7 @@ const initializeMomento = async () => {
 
   // Initialize Momento Cache session using default tuning for in-region clients, token from secrets manager, and a default TTL of 60s
   cacheClient = new CacheClient({
-    configuration: Configurations.Laptop.latest(),
+    configuration: Configurations.InRegion.Default.latest(),
     credentialProvider: CredentialProvider.fromString({ authToken: secret.momento }),
     defaultTtlSeconds: 60
   });
