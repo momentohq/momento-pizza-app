@@ -3,105 +3,113 @@ const { Metrics, MetricUnits } = require('@aws-lambda-powertools/metrics');
 const { unmarshall, marshall } = require('@aws-sdk/util-dynamodb');
 const metrics = new Metrics({ namespace: 'Momento', serviceName: 'pizza-tracker' });
 const ddb = new DynamoDBClient();
-/* Enable for Caching
+// load SecretsManager and Momento SDKs
 const { CacheClient, CredentialProvider, Configurations, CacheGet } = require('@gomomento/sdk');
 const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
 const secrets = new SecretsManagerClient();
 let cacheClient;
-*/
 
 exports.handler = async (event) => {
   try {
-    const totalstart = new Date();
 
     // Determine the cache item key we are interested in - tracking customer by source IP for this example
     const ipAddress = event.requestContext.identity.sourceIp;
 
-    /* Enable for Caching
     // Initialize Momento session
     await initializeMomento();
 
     // Record the time stamp of the beginning of the cache check
     const momentoStart = new Date();
 
-    // Check for the item in the cache
-    const cacheResult = await cacheClient.get('pizza', ipAddress);
+    // *** Uncomment following line to enable caching
+    // const cacheResult = await cacheClient.get('pizza', ipAddress);
 
-    // If the item is found in the cache, record metric for end of cache operation latency and record as a cache hit.
-    // Close out total latency metric. Publish to CloudWatch, then return the result to the API call and close out the function.
+    // Record elapsed time for cache check
+    const momentoTime = (new Date().getTime() - momentoStart.getTime());
+    metrics.addMetric('get-my-orders-latency-cache', MetricUnits.Milliseconds, momentoTime);
+
+    // If the item is found in the cache, record as a cache hit. Also record total latency as cache latency alone. Publish to CW, return result and close out.
     if(cacheResult instanceof CacheGet.Hit){
-      metrics.addMetric('get-my-orders-latency-cache', MetricUnits.Milliseconds, (new Date().getTime() - momentoStart.getTime()));
       metrics.addMetric('get-my-orders-cache-hit', MetricUnits.Count, 1);
-      metrics.addMetric('get-order-latency-total', MetricUnits.Milliseconds, (new Date().getTime() - totalstart.getTime()));
+      metrics.addMetric('get-my-orders-latency-total', MetricUnits.Milliseconds, momentoTime);
       metrics.publishStoredMetrics();
       return {
         statusCode: 200,
         body: cacheResult.valueString(),
         headers: { 'Access-Control-Allow-Origin': '*' }
       };
-    };
-    */
+    } else {
+      // Item was not found in the cache - so we'll check the database instead.
+      // Record the cache miss and time stamp of beginning of DB read call
 
-    // Item was not found in the cache - so we'll check the database instead.
-    const ddbstart = new Date();
+      metrics.addMetric('get-my-orders-cache-miss', MetricUnits.Count, 1);
 
-    const results = await ddb.send(new QueryCommand({
-      TableName: process.env.TABLE_NAME,
-      IndexName: 'type',
-      KeyConditionExpression: '#type = :type and #creator = :creator',
-      ExpressionAttributeNames: {
-        '#type': 'type',
-        '#creator': 'creator'
-      },
-      ExpressionAttributeValues: marshall({
-        ':type': 'order',
-        ':creator': ipAddress
-      })
-    }));
+      const ddbStart = new Date();
 
-    const orders = [];
-    results.Items.map(item => {
-      const data = unmarshall(item);
-      orders.push({
-        id: data.pk,
-        createdAt: data.createdAt,
-        status: data.status,
-        numItems: data.numItems,
-        ...data.lastUpdated && { lastUpdated: data.lastUpdated }
-      })
-    });
+      const results = await ddb.send(new QueryCommand({
+        TableName: process.env.TABLE_NAME,
+        IndexName: 'type',
+        KeyConditionExpression: '#type = :type and #creator = :creator',
+        ExpressionAttributeNames: {
+          '#type': 'type',
+          '#creator': 'creator'
+        },
+        ExpressionAttributeValues: marshall({
+          ':type': 'order',
+          ':creator': ipAddress
+        })
+      }));
 
-    metrics.addMetric('get-my-orders-latency-ddb', MetricUnits.Milliseconds, (new Date().getTime() - ddbstart.getTime()));
-    metrics.addMetric('get-my-orders-cache-miss', MetricUnits.Count, 1);
+      // Note the time spent in reading from DynamoDB.
 
-    // Close out the total latency metric (includes cache miss, database read, copy to cache) and publish to CW.
-    metrics.addMetric('get-my-orders-latency-total', MetricUnits.Milliseconds, (new Date().getTime() - totalstart.getTime()));
-    metrics.publishStoredMetrics();
+      const ddbTime = (new Date().getTime() - ddbStart.getTime());
+      metrics.addMetric('get-my-orders-latency-ddb', MetricUnits.Milliseconds, ddbTime);
+
+      const orders = [];
+      results.Items.map(item => {
+        const data = unmarshall(item);
+        orders.push({
+          id: data.pk,
+          createdAt: data.createdAt,
+          status: data.status,
+          numItems: data.numItems,
+          ...data.lastUpdated && { lastUpdated: data.lastUpdated }
+        })
+      });
     
-    orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    const orderResponse = JSON.stringify(orders);
+      orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const orderResponse = JSON.stringify(orders);
     
-    /* Enable for Caching
-    // Copy the data into the proper cache item (ready for next read)    
-    await cacheClient.set('pizza', ipAddress, orderResponse);
-    */
+      // Record start time of writing back the data to the cache
+      const writebackStart = new Date();
 
-    return {
-      statusCode: 200,
-      body: orderResponse,
-      headers: { 'Access-Control-Allow-Origin': '*' }
-    };
+      // Copy the data into the proper cache item (ready for next read)
+      // *** Uncomment line below to enable caching
+      //await cacheClient.set('pizza', ipAddress, orderResponse);
+
+      // Record elapsed time for writeback to cache
+      const writebackTime = (new Date().getTime() - writebackStart.getTime());
+
+      // Close out the total latency metric (includes cache miss, database read, copy to cache) and publish to CW.
+      metrics.addMetric('get-my-orders-latency-total', MetricUnits.Milliseconds, (ddbTime + momentoTime + writebackTime));
+      metrics.publishStoredMetrics();
+
+      return {
+        statusCode: 200,
+        body: orderResponse,
+        headers: { 'Access-Control-Allow-Origin': '*' }
+      };
+    }
   } catch (err) {
     console.error(err);
     return {
       statusCode: 500,
       body: JSON.stringify({ message: 'Something went wrong' }),
       headers: { 'Access-Control-Allow-Origin': '*' }
-    }
-  }
+      }
+  };
 };
 
-/* Enable for Caching
 // Setup the connection to Momento Cache - but only if it isn't already present.
 const initializeMomento = async () => {
   if(cacheClient){
@@ -119,4 +127,3 @@ const initializeMomento = async () => {
     defaultTtlSeconds: 60
   });
 };
-*/

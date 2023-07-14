@@ -409,9 +409,9 @@ Resources:
             {
                 "widgets": [
                     {
-                        "height": 12,
+                        "height": 10,
                         "width": 12,
-                        "y": 6,
+                        "y": 5,
                         "x": 0,
                         "type": "metric",
                         "properties": {
@@ -435,7 +435,7 @@ Resources:
                         }
                     },
                     {
-                        "height": 6,
+                        "height": 5,
                         "width": 12,
                         "y": 0,
                         "x": 12,
@@ -449,7 +449,7 @@ Resources:
                                 [ ".", "get-all-orders-latency-ddb", ".", ".", { "region": "us-west-2", "stat": "p99", "label": "get-all-orders-ddb p99", "color": "#ff7f0e" } ],
                                 [ ".", "get-all-orders-latency-cache", ".", ".", { "region": "us-west-2", "stat": "p99", "label": "get-all-orders-cache p99", "color": "#2ca02c" } ]
                                 ],
-                            "sparkline": true,
+                            "sparkline": false,
                             "view": "singleValue",
                             "region": "us-west-2",
                             "title": "GetAllOrders Latency",
@@ -458,9 +458,9 @@ Resources:
                         }
                     },
                     {
-                        "height": 6,
+                        "height": 5,
                         "width": 12,
-                        "y": 6,
+                        "y": 5,
                         "x": 12,
                         "type": "metric",
                         "properties": {
@@ -472,7 +472,7 @@ Resources:
                                 [ ".", "get-my-orders-latency-ddb", ".", ".", { "region": "us-west-2", "stat": "p99", "label": "get-my-orders-ddb p99" } ],
                                 [ ".", "get-my-orders-latency-cache", ".", ".", { "region": "us-west-2", "stat": "p99", "label": "get-my-orders-cache p99" } ]
                             ],
-                            "sparkline": true,
+                            "sparkline": false,
                             "view": "singleValue",
                             "region": "us-west-2",
                             "title": "GetMyOrders Latency",
@@ -481,9 +481,9 @@ Resources:
                         }
                     },
                     {
-                        "height": 6,
+                        "height": 5,
                         "width": 12,
-                        "y": 12,
+                        "y": 10,
                         "x": 12,
                         "type": "metric",
                         "properties": {
@@ -495,7 +495,7 @@ Resources:
                                 [ ".", "get-order-latency-ddb", ".", ".", { "region": "us-west-2", "stat": "p99", "label": "get-order-ddb p99", "color": "#7f7f7f" } ],
                                 [ ".", "get-order-latency-cache", ".", ".", { "region": "us-west-2", "stat": "p99", "label": "get-order-cache p99", "color": "#bcbd22" } ]
                             ],
-                            "sparkline": true,
+                            "sparkline": false,
                             "view": "singleValue",
                             "region": "us-west-2",
                             "title": "GetOrder Latency",
@@ -504,7 +504,7 @@ Resources:
                         }
                     },
                     {
-                        "height": 6,
+                        "height": 5,
                         "width": 12,
                         "y": 0,
                         "x": 0,
