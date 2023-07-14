@@ -1,4 +1,4 @@
-const { AuthClient, CacheClient, Configurations, CacheGet, CredentialProvider, AllDataReadWrite, ExpiresIn, GenerateAuthToken } = require('@gomomento/sdk');
+const { AuthClient, CacheClient, Configurations, CacheGet, CredentialProvider, ExpiresIn, GenerateAuthToken, TopicRole, AllTopics } = require('@gomomento/sdk');
 const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
 
 const secrets = new SecretsManagerClient();
@@ -18,7 +18,17 @@ exports.handler = async (event) => {
         headers: { 'Access-Control-Allow-Origin': '*' }
       };
     } else {
-      const token = await authClient.generateAuthToken(AllDataReadWrite, ExpiresIn.hours(1));
+      const tokenScope = {
+        permissions: [
+          {
+            role: TopicRole.SubscribeOnly,
+            cache: 'pizza',
+            topic: AllTopics
+          }
+        ]
+      };
+
+      const token = await authClient.generateAuthToken(tokenScope, ExpiresIn.hours(1));
       if (token instanceof GenerateAuthToken.Success) {
         const vendedToken = JSON.stringify({
           token: token.authToken,
