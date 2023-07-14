@@ -5,6 +5,6 @@
   "author": "Momento, Inc",
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.363.0",
-    "@gomomento/sdk": "^1.26.3"
+    "@gomomento/sdk": "^1.28.0"
   }
 }
