@@ -3,7 +3,7 @@ const { Metrics, MetricUnits } = require('@aws-lambda-powertools/metrics');
 const { marshall, unmarshall } = require('@aws-sdk/util-dynamodb');
 const ddb = new DynamoDBClient();
 const metrics = new Metrics({ namespace: 'Momento', serviceName: 'pizza-tracker' });
-// load SecretsManager and Momento SDKs
+// load SecretsManager and Momento SDKs - best practice is to initialize outside the main handler
 const { CacheClient, CredentialProvider, Configurations, CacheGet } = require('@gomomento/sdk');
 const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
 const secrets = new SecretsManagerClient();
