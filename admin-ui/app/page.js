@@ -4,6 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableRow, Button, Badge, Headin
 import { useRouter } from 'next/navigation';
 import Head from 'next/head';
 import { MdOutlineNavigateNext, MdRefresh } from 'react-icons/md';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Home = () => {
   const [orders, setOrders] = useState([]);
@@ -22,6 +24,7 @@ const Home = () => {
       setOrders(data);
     } catch (err) {
       console.error(err);
+      toast.error('There was a problem loading orders from the Admin API', { position: 'top-right', autoClose: 10000, draggable: false, hideProgressBar: true, theme: 'colored' });
     } finally {
       setIsFetching(false);
     }
@@ -98,6 +101,7 @@ const Home = () => {
           </TableBody>
         </Table>
       </Flex>
+      <ToastContainer />
     </>
   );
 };

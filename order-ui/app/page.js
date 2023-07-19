@@ -4,6 +4,8 @@ import Head from 'next/head';
 import { useRouter } from 'next/navigation';
 import { Table, TableBody, TableCell, TableHead, TableRow, View, Badge, Heading, Text, Flex, Image, Loader } from '@aws-amplify/ui-react';
 import { MdOutlineNavigateNext, MdRefresh } from 'react-icons/md';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Home = () => {
   const router = useRouter();
@@ -12,16 +14,18 @@ const Home = () => {
 
   useEffect(() => {
     fetchOrders();
-  }, [])
+  }, []);
 
   const fetchOrders = async () => {
     try {
       setIsFetching(true);
       const response = await fetch(`${process.env.NEXT_PUBLIC_ORDER_API}/orders`);
       const data = await response.json();
+
       setOrders(data);
     } catch (err) {
       console.error(err);
+      toast.error('There was a problem loading orders from the Order API', { position: 'top-right', autoClose: 10000, draggable: false, hideProgressBar: true, theme: 'colored' });
     } finally {
       setIsFetching(false);
     }
@@ -107,6 +111,7 @@ const Home = () => {
           </Table>
         </View>
       </Flex>
+      <ToastContainer />
     </>
   );
 };

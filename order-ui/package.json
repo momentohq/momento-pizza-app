@@ -11,11 +11,11 @@
   "dependencies": {
     "@aws-amplify/ui-react": "^5.0.3",
     "@gomomento/sdk-web": "^1.26.3",
-    "aws-amplify": "^5.3.1",
-    "aws-amplify-react": "^5.1.43",
+    "aws-amplify": "^5.3.4",
     "next": "13.4.7",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-icons": "^4.10.1"
+    "react-icons": "^4.10.1",
+    "react-toastify": "^9.1.3"
   }
 }

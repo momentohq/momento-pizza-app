@@ -4,6 +4,8 @@ import Head from 'next/head';
 import { MdAddBox, MdArrowBack, MdDelete } from 'react-icons/md';
 import Layout from '../../app/layout';
 import { View, ToggleButton, Flex, Heading, Badge, Tabs, TabItem, Card, SelectField, Button, Text, ToggleButtonGroup, ThemeProvider } from '@aws-amplify/ui-react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const OrderDetail = () => {
   const router = useRouter();
@@ -49,6 +51,10 @@ const OrderDetail = () => {
       updateStatus(data.status);
     } catch (error) {
       console.error('Error fetching order:', error);
+      const brokenOrder = {items: []};
+      setOrder(brokenOrder);
+      orderRef.current = brokenOrder;
+      toast.error('There was a problem loading order details', { position: 'top-right', autoClose: 10000, draggable: false, hideProgressBar: true, theme: 'colored' });
     }
   };
 
@@ -277,6 +283,7 @@ const OrderDetail = () => {
             </View>
           </Flex>
         </Flex>
+        <ToastContainer/>
       </Layout>
     </ThemeProvider>
   );

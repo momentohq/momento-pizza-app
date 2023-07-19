@@ -9,6 +9,8 @@ import { Inter } from 'next/font/google'
 const inter = Inter({ subsets: ['latin'] });
 import { Layout } from '@/app/layout';
 import '@aws-amplify/ui-react/styles.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const OrderDetail = () => {
   const [order, setOrder] = useState(null);
@@ -32,6 +34,7 @@ const OrderDetail = () => {
       setOrder(data);
     } catch (error) {
       console.error('Error fetching order detail:', error);
+      toast.error('There was a problem loading order details', { position: 'top-right', autoClose: 10000, draggable: false, hideProgressBar: true, theme: 'colored' });
     }
   };
 
@@ -89,6 +92,7 @@ const OrderDetail = () => {
     return (
       <Flex alignItems="center" justifyContent="center">
         <Loader />
+        <ToastContainer/>
       </Flex>
     )
   }
@@ -157,6 +161,7 @@ const OrderDetail = () => {
         </Flex>
       </Flex>
       <Footer />
+      <ToastContainer />
     </View>
   );
 };

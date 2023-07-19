@@ -8,10 +8,6 @@ import '@aws-amplify/ui-react/styles.css';
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata = {
-  title: 'Momento Pizza'  
-}
-
 export default function RootLayout({ children }) {
   return (
     <html>
