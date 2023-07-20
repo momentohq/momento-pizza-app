@@ -21,7 +21,7 @@ exports.handler = async (event) => {
 
     // Check for the item in the cache
     // *** Uncomment line below to enable caching
-    // const cacheResult = await cacheClient.get('pizza', 'all-orders');
+    // cacheResult = await cacheClient.get('pizza', 'all-orders');
 
     // Record elapsed time for cache check
     const momentoTime = (new Date().getTime() - momentoStart.getTime());
