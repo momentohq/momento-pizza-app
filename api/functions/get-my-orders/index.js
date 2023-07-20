@@ -23,7 +23,7 @@ exports.handler = async (event) => {
     const momentoStart = new Date();
 
     // *** Uncomment following line to enable caching
-    // const cacheResult = await cacheClient.get('pizza', ipAddress);
+    // cacheResult = await cacheClient.get('pizza', ipAddress);
 
     // Record elapsed time for cache check
     const momentoTime = (new Date().getTime() - momentoStart.getTime());
@@ -86,7 +86,7 @@ exports.handler = async (event) => {
 
       // Copy the data into the proper cache item (ready for next read)
       // *** Uncomment line below to enable caching
-      //await cacheClient.set('pizza', ipAddress, orderResponse);
+      // await cacheClient.set('pizza', ipAddress, orderResponse);
 
       // Record elapsed time for writeback to cache
       const writebackTime = (new Date().getTime() - writebackStart.getTime());
