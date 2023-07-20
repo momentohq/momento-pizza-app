@@ -545,7 +545,7 @@ Resources:
 Outputs:
   OrderApiEndpoint:
     Description: Copy and paste this value in ./order-ui/next.config.js into the NEXT_PUBLIC_ORDER_API property
-    Value: !Sub "https://${OrderApi}.execute-api."${AWS::Region}".amazonaws.com/dev"
+    Value: !Sub "https://${OrderApi}.execute-api.${AWS::Region}.amazonaws.com/dev"
   AdminApiEndpoint:
     Description: Copy and paste this value in ./admin-ui/next.config.js into the NEXT_PUBLIC_ADMIN_API property
-    Value: !Sub "https://${AdminApi}.execute-api."${AWS::Region}".amazonaws.com/dev"
+    Value: !Sub "https://${AdminApi}.execute-api.${AWS::Region}.amazonaws.com/dev"
