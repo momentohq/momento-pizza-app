@@ -8,6 +8,7 @@ const { CacheClient, CredentialProvider, Configurations, CacheGet } = require('@
 const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
 const secrets = new SecretsManagerClient();
 let cacheClient;
+let cacheResult;
 
 exports.handler = async (event) => {
   try {
