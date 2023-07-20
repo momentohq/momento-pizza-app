@@ -20,7 +20,7 @@ Globals:
     MemorySize: 1024
     Handler: index.handler
     Layers:
-      - !Sub arn:aws:lambda:"${AWS::Region}":094274105915:layer:AWSLambdaPowertoolsTypeScript:12
+      - !Sub arn:aws:lambda:${AWS::Region}:094274105915:layer:AWSLambdaPowertoolsTypeScript:12
       - !Ref DependencyLayer
     Environment:
       Variables:
@@ -335,13 +335,13 @@ Resources:
               Action:
                 - states:DescribeExecution
                 - states:StopExecution
-              Resource: !Sub arn:${AWS::Partition}:states:"${AWS::Region}":${AWS::AccountId}:execution:${OrderWorkflowStateMachine.Name}:*
+              Resource: !Sub arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:execution:${OrderWorkflowStateMachine.Name}:*
             - Effect: Allow
               Action:
                 - events:PutTargets
                 - events:PutRule
                 - events:DescribeRule
-              Resource: !Sub arn:${AWS::Partition}:events:"${AWS::Region}":${AWS::AccountId}:rule/StepFunctionsGetEventsForStepFunctionsExecutionRule
+              Resource: !Sub arn:${AWS::Partition}:events:${AWS::Region}:${AWS::AccountId}:rule/StepFunctionsGetEventsForStepFunctionsExecutionRule
       Events:
         StartEvent:
           Type: EventBridgeRule
@@ -360,8 +360,8 @@ Resources:
         LambdaInvoke: !Sub arn:${AWS::Partition}:states:::lambda:invoke
         GenerateOrders: !GetAtt GenerateOrdersFunction.Arn
         SendRequest: !GetAtt SendRequestFunction.Arn
-        OrderApiBaseUrl: !Sub https://${OrderApi}.execute-api."${AWS::Region}".amazonaws.com/dev
-        AdminApiBaseUrl: !Sub https://${AdminApi}.execute-api."${AWS::Region}".amazonaws.com/dev
+        OrderApiBaseUrl: !Sub https://${OrderApi}.execute-api.${AWS::Region}.amazonaws.com/dev
+        AdminApiBaseUrl: !Sub https://${AdminApi}.execute-api.${AWS::Region}.amazonaws.com/dev
         DynamoDbDeleteItem: !Sub arn:${AWS::Partition}:states:::dynamodb:deleteItem
         TableName: !Ref OrderTable
       Policies:
