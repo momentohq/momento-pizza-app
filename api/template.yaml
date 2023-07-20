@@ -511,16 +511,22 @@ Resources:
                         "type": "metric",
                         "properties": {
                             "metrics": [
-                                [ "Momento", "get-order-cache-miss", "service", "pizza-tracker", { "region": "us-west-2" } ],
-                                [ ".", "get-my-orders-cache-miss", ".", ".", { "region": "us-west-2" } ],
-                                [ ".", "get-all-orders-cache-miss", ".", ".", { "region": "us-west-2" } ]
+                                [ { "expression": "m5*100/(m3+m5)", "label": "get-all-orders", "id": "e3", "region": "us-west-2" } ],
+                                [ { "expression": "m6*100/(m2+m6)", "label": "get-my-orders", "id": "e2", "region": "us-west-2" } ],
+                                [ { "expression": "m4*100/(m1+m4)", "label": "get-order", "id": "e1", "region": "us-west-2" } ],
+                                [ "Momento", "get-order-cache-miss", "service", "pizza-tracker", { "region": "us-west-2", "id": "m1", "visible": false } ],
+                                [ ".", "get-my-orders-cache-miss", ".", ".", { "region": "us-west-2", "id": "m2", "visible": false } ],
+                                [ ".", "get-all-orders-cache-miss", ".", ".", { "region": "us-west-2", "id": "m3", "visible": false } ],
+                                [ ".", "get-order-cache-hit", ".", ".", { "region": "us-west-2", "id": "m4", "visible": false } ],
+                                [ ".", "get-all-orders-cache-hit", ".", ".", { "region": "us-west-2", "id": "m5", "visible": false } ],
+                                [ ".", "get-my-orders-cache-hit", ".", ".", { "region": "us-west-2", "id": "m6", "visible": false } ]
                             ],
                             "sparkline": true,
                             "view": "gauge",
                             "region": "us-west-2",
                             "title": "Cache Hit Rates",
                             "period": 300,
-                            "stat": "p99",
+                            "stat": "Sum",
                             "legend": {
                                 "position": "bottom"
                             },

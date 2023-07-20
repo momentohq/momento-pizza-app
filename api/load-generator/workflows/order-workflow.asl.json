@@ -79,7 +79,7 @@
                   "method": "GET",
                   "baseUrl.$": "States.Format('${AdminApiBaseUrl}/orders/{}', $.id)"
                 },
-                "iterations": 10
+                "iterations": 4
               }
             },
             "Retry": [
