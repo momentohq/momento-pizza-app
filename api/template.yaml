@@ -33,14 +33,7 @@ Globals:
       AllowOrigin: "'*'"
 
 Resources:
-# Uncomment the lines below to enable DynamoDB Streams and processing for write-aside in the cache
-#  OrderTableStream:
-#    Type: AWS::Lambda::EventSourceMapping
-#    Properties:
-#      EventSourceArn: !GetAtt OrderTable.StreamArn
-#      FunctionName: !GetAtt StreamHandlerFunction.Arn
-#      StartingPosition: TRIM_HORIZON
-#      BatchSize: 1
+# Uncomment the lines below to define our stream processing Lambda function.
 #  StreamHandlerFunction:
 #    Type: AWS::Serverless::Function
 #    Properties:
@@ -60,7 +53,16 @@ Resources:
 #              Action:
 #                - secretsmanager:GetSecretValue
 #              Resource: !Ref MomentoSecret
-
+#
+# Uncomment the lines below to enable DynamoDB Streams on our table.
+#  OrderTableStream:
+#    Type: AWS::Lambda::EventSourceMapping
+#    Properties:
+#      EventSourceArn: !GetAtt OrderTable.StreamArn
+#      FunctionName: !GetAtt StreamHandlerFunction.Arn
+#      StartingPosition: TRIM_HORIZON
+#      BatchSize: 1
+#
   OrderApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -117,8 +119,9 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-      StreamSpecification:
-        StreamViewType: NEW_AND_OLD_IMAGES
+# Uncomment the below lines to enable Streams on our DynamoDB table.
+#      StreamSpecification:
+#        StreamViewType: NEW_AND_OLD_IMAGES
 
   MomentoSecret:
     Type: AWS::SecretsManager::Secret
