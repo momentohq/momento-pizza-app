@@ -1,0 +1,16 @@
+{
+  "name": "stream-handler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.370.0",
+    "@aws-sdk/util-dynamodb": "^3.370.0",
+    "@gomomento/sdk": "^1.28.0"
+  }
+}
