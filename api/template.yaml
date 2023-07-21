@@ -62,10 +62,40 @@ Resources:
       CompatibleRuntimes:
         - nodejs18.x
 
+  StreamHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/stream-handler/
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:DescribeStream
+                - dynamodb:GetRecords
+                - dynamodb:GetShardIterator
+                - dynamodb:ListStreams
+              Resource: !Sub ${OrderTable.Arn}/stream/*
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Ref MomentoSecret
+
+  OrderTableStream:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt OrderTable.StreamArn
+      FunctionName: !GetAtt StreamHandlerFunction.Arn
+      StartingPosition: TRIM_HORIZON
+      BatchSize: 1
+
   OrderTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      BillingMode: PAY_PER_REQUEST      
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
       KeySchema:
         - AttributeName: pk
           KeyType: HASH
