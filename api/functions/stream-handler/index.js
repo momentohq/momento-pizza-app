@@ -23,26 +23,7 @@ exports.handler = async (event) => {
 };
 
 const handleNewOrUpdatedCacheItem = async (record) => {
-   let item = {
-    id: record.pk,
-    createdAt: record.createdAt,
-    status: record.status,
-    numItems: record.numItems,
-    items: record.items,
-    ...record.lastUpdated && { lastUpdated: record.lastUpdated }
-  };
-
-  await Promise.allSettled([
-    await cacheClient.set('pizza', item.id, JSON.stringify(item)),
-    await cacheClient.set('pizza', `ADMIN-${item.id}`, JSON.stringify({ ...item, creator: record.creator }))
-  ]);
-
-  delete item.items;
-
-  await Promise.allSettled([
-    await updateArrayCacheItem('all-orders', item),
-    await updateArrayCacheItem(record.creator, item)
-  ]);
+  await updateOrderRecord(record);
 };
 
 const updateArrayCacheItem = async (key, item) => {
@@ -97,4 +78,27 @@ const initializeMomento = async () => {
     credentialProvider: CredentialProvider.fromString({ authToken: secret.momento }),
     defaultTtlSeconds: 60
   });
+};
+
+async function updateOrderRecord(record) {
+  let item = {
+    id: record.pk,
+    createdAt: record.createdAt,
+    status: record.status,
+    numItems: record.numItems,
+    items: record.items,
+    ...record.lastUpdated && { lastUpdated: record.lastUpdated }
+  };
+
+  await Promise.allSettled([
+    await cacheClient.set('pizza', item.id, JSON.stringify(item)),
+    await cacheClient.set('pizza', `ADMIN-${item.id}`, JSON.stringify({ ...item, creator: record.creator }))
+  ]);
+
+  delete item.items;
+
+  await Promise.allSettled([
+    await updateArrayCacheItem('all-orders', item),
+    await updateArrayCacheItem(record.creator, item)
+  ]);
 };
