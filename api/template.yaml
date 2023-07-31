@@ -487,7 +487,9 @@ Resources:
                             "region": "${AWS::Region}",
                             "title": "GetAllOrders Latency",
                             "period": 300,
-                            "stat": "Average"
+                            "stat": "Average",
+                            "setPeriodToTimeRange": true,
+                            "trend": false
                         }
                     },
                     {
@@ -511,6 +513,8 @@ Resources:
                             "title": "GetMyOrders Latency",
                             "period": 300,
                             "stat": "Average"
+                            "setPeriodToTimeRange": true,
+                            "trend": false
                         }
                     },
                     {
@@ -533,7 +537,9 @@ Resources:
                             "region": "${AWS::Region}",
                             "title": "GetOrder Latency",
                             "period": 300,
-                            "stat": "Average"
+                            "stat": "Average",
+                            "setPeriodToTimeRange": true,
+                            "trend": false
                         }
                     },
                     {
