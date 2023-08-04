@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Flex, Heading, View, Link, Button, Text } from '@aws-amplify/ui-react';
 import { MdAddBox } from 'react-icons/md';
 import { useRouter } from 'next/navigation';
-const baseUrl = 'https://16xdrsr906.execute-api.us-east-1.amazonaws.com/dev';
+const baseUrl = process.env.NEXT_PUBLIC_ORDER_API;
 
 const Header = () => {
   const router = useRouter();
