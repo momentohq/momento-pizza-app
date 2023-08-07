@@ -512,7 +512,7 @@ Resources:
                             "region": "${AWS::Region}",
                             "title": "GetMyOrders Latency",
                             "period": 300,
-                            "stat": "Average"
+                            "stat": "Average",
                             "setPeriodToTimeRange": true,
                             "trend": false
                         }
