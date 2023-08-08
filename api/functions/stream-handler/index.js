@@ -23,7 +23,7 @@ exports.handler = async (event) => {
 };
 
 const handleNewOrUpdatedCacheItem = async (record) => {
-  await updateOrderRecord(record);
+  setTimeout(updateOrderRecord,20,record);
 };
 
 const updateArrayCacheItem = async (key, item) => {
