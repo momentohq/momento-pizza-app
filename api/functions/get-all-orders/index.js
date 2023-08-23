@@ -33,6 +33,12 @@ exports.handler = async (event) => {
       metrics.addMetric('get-all-orders-cache-hit', MetricUnits.Count, 1);
       metrics.addMetric('get-all-orders-latency-total', MetricUnits.Milliseconds, momentoTime);
       metrics.publishStoredMetrics();
+      // Delete the all-orders cache entry some of the time - to simulate some misses and gather enough datapoints for latency
+      // of going to the database directly.
+      // *** Uncomment lines below to enable caching
+      // if(Math.random() > 0.95){
+      //   await cacheClient.delete('pizza', 'all-orders');
+      // };
       return {
         statusCode: 200,
         body: cacheResult.valueString(),
@@ -40,7 +46,7 @@ exports.handler = async (event) => {
       };
     } else {
       // Item was not found in the cache - so we'll check the database instead.
-      // Record the cache miss and time stamp of beginning of DEB read call.
+      // Record the cache miss and time stamp of beginning of DDB read call.
 
       metrics.addMetric('get-all-orders-cache-miss', MetricUnits.Count, 1);
 

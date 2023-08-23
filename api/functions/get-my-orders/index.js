@@ -34,6 +34,12 @@ exports.handler = async (event) => {
       metrics.addMetric('get-my-orders-cache-hit', MetricUnits.Count, 1);
       metrics.addMetric('get-my-orders-latency-total', MetricUnits.Milliseconds, momentoTime);
       metrics.publishStoredMetrics();
+      // Delete the cache entry some of the time - to simulate some misses and gather enough datapoints for latency
+      // of going to the database directly.
+      // *** Uncomment following line to enable caching
+      // if(Math.random() > 0.9){
+      //   await cacheClient.delete('pizza', ipAddress);
+      // };
       return {
         statusCode: 200,
         body: cacheResult.valueString(),
