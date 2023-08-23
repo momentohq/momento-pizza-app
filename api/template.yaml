@@ -488,8 +488,9 @@ Resources:
                             "title": "GetAllOrders Latency",
                             "period": 300,
                             "stat": "Average",
-                            "setPeriodToTimeRange": true,
-                            "trend": false
+                            "setPeriodToTimeRange": false,
+                            "trend": true,
+                            "liveData": false
                         }
                     },
                     {
@@ -513,8 +514,9 @@ Resources:
                             "title": "GetMyOrders Latency",
                             "period": 300,
                             "stat": "Average",
-                            "setPeriodToTimeRange": true,
-                            "trend": false
+                            "setPeriodToTimeRange": false,
+                            "trend": true,
+                            "liveData": false
                         }
                     },
                     {
@@ -538,8 +540,9 @@ Resources:
                             "title": "GetOrder Latency",
                             "period": 300,
                             "stat": "Average",
-                            "setPeriodToTimeRange": true,
-                            "trend": false
+                            "setPeriodToTimeRange": false,
+                            "trend": true,
+                            "liveData": false
                         }
                     },
                     {
