@@ -3,8 +3,10 @@ import { useEffect, useState, useRef } from 'react';
 import Head from 'next/head';
 import { MdAddBox, MdArrowBack, MdDelete } from 'react-icons/md';
 import Layout from '../../app/layout';
-import { View, ToggleButton, Flex, Heading, Badge, Tabs, TabItem, Card, SelectField, Button, Text, ToggleButtonGroup, ThemeProvider } from '@aws-amplify/ui-react';
+import { View, ToggleButton, Flex, Heading, Tabs, TabItem, Card, SelectField, Button, Text, ToggleButtonGroup, ThemeProvider } from '@aws-amplify/ui-react';
 import { ToastContainer, toast } from 'react-toastify';
+import { getStatusBadge } from '@/util/utils';
+import { toppingList } from '@/lib/toppings';
 import 'react-toastify/dist/ReactToastify.css';
 
 const OrderDetail = () => {
@@ -142,7 +144,6 @@ const OrderDetail = () => {
         body: JSON.stringify({ status: 'SUBMITTED' }),
       });
       if (response.ok) {
-        console.log('Order submitted successfully');
         router.push('/');
       } else {
         console.error('Failed to save order');
@@ -163,11 +164,10 @@ const OrderDetail = () => {
         },
         body: JSON.stringify({ items: orderRef.current.items }),
       });
-      if (response.ok) {
-        console.log('Order saved successfully');
-      } else {
-        console.error('Failed to save order');
-      }
+      if (!response.ok) {
+        toast.error('There was a problem saving your order', { position: 'top-right', autoClose: 10000, draggable: false, hideProgressBar: true, theme: 'colored' });
+        console.error(response.body);
+      } 
     } catch (error) {
       console.error('Error saving order:', error);
     }
@@ -179,50 +179,6 @@ const OrderDetail = () => {
 
   const { items } = order;
   const isOrderEditable = status === 'WAITING ON CUSTOMER' || status === 'SUBMITTED';
-
-  const toppingList = [
-    'cheese',
-    'pepperoni',
-    'sausage',
-    'chicken',
-    'anchovies',
-    'olives',
-    'peppers',
-    'mushrooms',
-    'onions'
-  ];
-
-  const getStatusBadge = (status) => {
-    let label, variation;
-    switch (status) {
-      case 'SUBMITTED':
-        label = 'Pending';
-        variation = 'info';
-        break;
-      case 'IN PROGRESS':
-        label = 'Being Made';
-        variation = 'warning';
-        break;
-      case 'COMPLETED':
-        label = 'Out for Delivery';
-        variation = 'success';
-        break;
-      case 'REJECTED':
-        label = 'Rejected';
-        variation = 'error';
-        break;
-      case 'WAITING ON CUSTOMER':
-        label = 'In Cart';
-        variation = '';
-        break;
-      default:
-        label = status;
-        variation = '';
-        break;
-    };
-
-    return (<Badge size="large" variation={variation}>{label}</Badge>);
-  };
 
   return (
     <ThemeProvider theme={theme} >
@@ -260,7 +216,7 @@ const OrderDetail = () => {
                           <option style={{ color: "black" }} value="bbq">BBQ</option>
                         </SelectField>
                         <Text fontSize=".85rem" color="darkslategray">Toppings</Text>
-                        <ToggleButtonGroup value={toppings} isSelectionRequired onChange={handleToppingChange}>
+                        <ToggleButtonGroup value={toppings} isSelectionRequired onChange={handleToppingChange} wrap="wrap">
                           {toppingList.map((topping, toppingIndex) => (
                             <ToggleButton key={"topping" + toppingIndex} variation="primary" isDisabled={!isOrderEditable} borderRadius="xxl" fontSize=".9rem" value={topping} marginRight=".5em">{topping}</ToggleButton>
                           ))}

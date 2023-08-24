@@ -1,9 +1,8 @@
 'use client'
 import './globals.css'
 import { Inter } from 'next/font/google'
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { View } from '@aws-amplify/ui-react'
+import Header from '@/components/header';
+import { View, Text } from '@aws-amplify/ui-react'
 import '@aws-amplify/ui-react/styles.css';
 
 const inter = Inter({ subsets: ['latin'] })
@@ -17,7 +16,9 @@ export default function RootLayout({ children }) {
           <View height="94vh" backgroundColor="#C2B2A9">
             {children}
           </View>
-          <Footer />
+          <View textAlign="center" backgroundColor="#C4F135" position="fixed" bottom="0" right="0" width="100%" padding=".5em">
+            <Text>&copy; {new Date().getFullYear()} Momento. All rights reserved.</Text>
+          </View>
         </View>
       </body>
     </html>
