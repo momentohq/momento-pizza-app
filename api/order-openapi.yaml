@@ -234,7 +234,7 @@ components:
           type: array
           items:
             type: string
-            enum: [cheese, pepperoni, sausage, olives, peppers, mushrooms, onions, anchovies, chicken]
+            enum: [cheese, pepperoni, sausage, olives, peppers, mushrooms, onions, anchovies, chicken, pineapple]
         sauce:
           type: string
           enum: [tomato, alfredo, pesto, bbq]

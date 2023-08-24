@@ -42,7 +42,7 @@ const OrderDetail = () => {
         configuration: Configurations.Laptop.latest(),
         credentialProvider: CredentialProvider.fromString({ authToken: data.token })
       });
-    } 
+    }
 
     await topicClient.subscribe('pizza', `${id}-status-updated`, {
       onItem: (data) => updateStatus(JSON.parse(data.valueString()).status),
@@ -203,7 +203,8 @@ const OrderDetail = () => {
     'olives',
     'peppers',
     'mushrooms',
-    'onions'
+    'onions',
+    "pineapple"
   ];
 
   const getStatusBadge = (status) => {
@@ -274,7 +275,7 @@ const OrderDetail = () => {
                           <option style={{ color: "black" }} value="bbq">BBQ</option>
                         </SelectField>
                         <Text fontSize=".85rem" color="darkslategray">Toppings</Text>
-                        <ToggleButtonGroup value={toppings} isSelectionRequired onChange={handleToppingChange}>
+                        <ToggleButtonGroup value={toppings} isSelectionRequired onChange={handleToppingChange} wrap="wrap">
                           {toppingList.map((topping, toppingIndex) => (
                             <ToggleButton key={"topping" + toppingIndex} variation="primary" isDisabled={!isOrderEditable} borderRadius="xxl" fontSize=".9rem" value={topping} marginRight=".5em">{topping}</ToggleButton>
                           ))}

@@ -64,7 +64,7 @@ const Home = () => {
       <Head>
         <title>Momento Pizza</title>
       </Head>
-      <Flex direction="column" alignItems="center" justifyContent="center" padding="1em">
+      <Flex direction="column" alignItems="center" justifyContent="center" padding="1em" backgroundColor="#C2B2A9">
         <Flex direction="column" alignItems="center">
           <Heading level="4">Welcome to Momento Pizza!</Heading>
           <Text>Ready for an unforgettable pizza experience? You're in the right place!</Text>
