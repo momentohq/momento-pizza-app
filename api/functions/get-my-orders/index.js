@@ -29,8 +29,12 @@ exports.handler = async (event) => {
     const momentoTime = (new Date().getTime() - momentoStart.getTime());
     metrics.addMetric('get-my-orders-latency-cache', MetricUnits.Milliseconds, momentoTime);
 
+    if(cacheResult instanceof CacheGet.Error){
+      // Oops
+      console.error(`Something went wrong! ${cacheResult.toString()}`);
+      throw cacheResult.innerException();
+    } elseif(cacheResult instanceof CacheGet.Hit){
     // If the item is found in the cache, record as a cache hit. Also record total latency as cache latency alone. Publish to CW, return result and close out.
-    if(cacheResult instanceof CacheGet.Hit){
       metrics.addMetric('get-my-orders-cache-hit', MetricUnits.Count, 1);
       metrics.addMetric('get-my-orders-latency-total', MetricUnits.Milliseconds, momentoTime);
       metrics.publishStoredMetrics();
