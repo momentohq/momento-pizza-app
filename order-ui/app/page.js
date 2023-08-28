@@ -41,7 +41,7 @@ const Home = () => {
         <Flex direction="column" alignItems="center">
           <Heading level="4">Welcome to Momento Pizza!</Heading>
           <Text>Ready for an unforgettable pizza experience? You're in the right place!</Text>
-          <Image src="/margherita-pizza.webp" width="16em" height="12em" borderRadius="10px" boxShadow="medium" />
+          <Image src="/mo-pizza-delivery-small.png" width="16em" height="auto" borderRadius="10px" boxShadow="medium" />
         </Flex>
         <View width="80%">
           <Table highlightOnHover="true" backgroundColor="white" boxShadow="medium" size="small">

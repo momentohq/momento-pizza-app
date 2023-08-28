@@ -33,36 +33,6 @@ Globals:
       AllowOrigin: "'*'"
 
 Resources:
-# Uncomment the lines below to define our stream processing Lambda function.
-#  StreamHandlerFunction:
-#    Type: AWS::Serverless::Function
-#    Properties:
-#      CodeUri: functions/stream-handler/
-#      Policies:
-#        - AWSLambdaBasicExecutionRole
-#        - Version: 2012-10-17
-#          Statement:
-#            - Effect: Allow
-#              Action:
-#                - dynamodb:DescribeStream
-#                - dynamodb:GetRecords
-#                - dynamodb:GetShardIterator
-#                - dynamodb:ListStreams
-#              Resource: !Sub ${OrderTable.Arn}/stream/*
-#            - Effect: Allow
-#              Action:
-#                - secretsmanager:GetSecretValue
-#              Resource: !Ref MomentoSecret
-#
-# Uncomment the lines below to enable DynamoDB Streams on our table.
-#  OrderTableStream:
-#    Type: AWS::Lambda::EventSourceMapping
-#    Properties:
-#      EventSourceArn: !GetAtt OrderTable.StreamArn
-#      FunctionName: !GetAtt StreamHandlerFunction.Arn
-#      StartingPosition: TRIM_HORIZON
-#      BatchSize: 1
-#
   OrderApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -122,6 +92,37 @@ Resources:
 # Uncomment the below lines to enable Streams on our DynamoDB table.
 #      StreamSpecification:
 #        StreamViewType: NEW_AND_OLD_IMAGES
+
+# Uncomment the lines below to define our stream processing Lambda function.
+#  StreamHandlerFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: functions/stream-handler/
+#      Policies:
+#        - AWSLambdaBasicExecutionRole
+#        - Version: 2012-10-17
+#          Statement:
+#            - Effect: Allow
+#              Action:
+#                - dynamodb:DescribeStream
+#                - dynamodb:GetRecords
+#                - dynamodb:GetShardIterator
+#                - dynamodb:ListStreams
+#              Resource: !Sub ${OrderTable.Arn}/stream/*
+#            - Effect: Allow
+#              Action:
+#                - secretsmanager:GetSecretValue
+#              Resource: !Ref MomentoSecret
+#
+# Uncomment the lines below to enable DynamoDB Streams on our table.
+#  OrderTableStream:
+#    Type: AWS::Lambda::EventSourceMapping
+#    Properties:
+#      EventSourceArn: !GetAtt OrderTable.StreamArn
+#      FunctionName: !GetAtt StreamHandlerFunction.Arn
+#      StartingPosition: TRIM_HORIZON
+#      BatchSize: 1
+#
 
   MomentoSecret:
     Type: AWS::SecretsManager::Secret

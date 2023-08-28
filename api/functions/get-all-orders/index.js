@@ -27,9 +27,13 @@ exports.handler = async (event) => {
     const momentoTime = (new Date().getTime() - momentoStart.getTime());
     metrics.addMetric('get-all-orders-latency-cache', MetricUnits.Milliseconds, momentoTime);
 
+    if(cacheResult instanceof CacheGet.Error){
+      // Oops
+      console.error(`Something went wrong! ${cacheResult.toString()}`);
+      throw cacheResult.innerException();
+    } elseif(cacheResult instanceof CacheGet.Hit){
     // If the item is found in the cache, record metric for end of cache operation latency and record as a cache hit.
     // Close out total latency metric. Publish to CloudWatch, then return the result to the API call and close out the function.
-    if(cacheResult instanceof CacheGet.Hit){
       metrics.addMetric('get-all-orders-cache-hit', MetricUnits.Count, 1);
       metrics.addMetric('get-all-orders-latency-total', MetricUnits.Milliseconds, momentoTime);
       metrics.publishStoredMetrics();
