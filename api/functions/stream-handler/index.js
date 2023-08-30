@@ -1,8 +1,9 @@
 const { unmarshall } = require('@aws-sdk/util-dynamodb');
 const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
-const { CacheClient, CredentialProvider, Configurations, CacheGet } = require('@gomomento/sdk');
+const { CacheClient, CredentialProvider, Configurations, CacheGet, TopicClient } = require('@gomomento/sdk');
 const secrets = new SecretsManagerClient();
 let cacheClient;
+let topicClient;
 
 exports.handler = async (event) => {
   try {
@@ -22,9 +23,21 @@ exports.handler = async (event) => {
   }
 };
 
+// Comment out the below to enable publishing of updates via Momento Topics
 const handleNewOrUpdatedCacheItem = async (record) => {
   setTimeout(updateOrderRecord,20,record);
 };
+
+// Uncomment the below to enable publishing of updates via Momento Topics
+//const handleNewOrUpdatedCacheItem = async (record, oldRecord) => {
+//  await updateOrderRecord(record);
+//  if (!oldRecord) {
+//    await topicClient.publish('pizza', 'new-order', JSON.stringify({ id: record.pk }));
+//  } else {
+//    const topicName = (record.status == oldRecord.status) ? `${record.pk}-updated` : `${record.pk}-status-updated`;
+//    await topicClient.publish('pizza', topicName, JSON.stringify({ status: record.status }));
+//  }
+//};
 
 const updateArrayCacheItem = async (key, item) => {
   let cachedArray;
@@ -49,7 +62,11 @@ const handleDeletedCacheItem = async (record) => {
     await cacheClient.delete('pizza', record.pk),
     await cacheClient.delete('pizza', `ADMIN-${record.pk}`),
     await deleteArrayCacheItem('allOrders', record.pk),
+    // Comment out the line below to enable publishing of updates via Momento Topics
     await deleteArrayCacheItem(record.creator, record.pk)
+    // Uncomment the lines below to enable publishing of updates via Momento Topics
+    // await deleteArrayCacheItem(record.creator, record.pk),
+    // await topicClient.publish('pizza', 'order-canceled', JSON.stringify({ id: record.pk }))
   ]);    
 };
 
@@ -67,16 +84,20 @@ const deleteArrayCacheItem = async (key, itemId) => {
 };
 
 const initializeMomento = async () => {
-  if (cacheClient) {
+  if (cacheClient && topicClient) {
     return;
   }
 
   const secretResponse = await secrets.send(new GetSecretValueCommand({ SecretId: process.env.SECRET_ID }));
   const secret = JSON.parse(secretResponse.SecretString);
   cacheClient = new CacheClient({
-    configuration: Configurations.InRegion.Default.latest(),
+    configuration: Configurations.Lambda.latest(),
     credentialProvider: CredentialProvider.fromString({ authToken: secret.momento }),
     defaultTtlSeconds: 60
+  });
+  topicClient = new TopicClient({
+    configuration: Configurations.InRegion.Default.latest(),
+    credentialProvider: CredentialProvider.fromString({ authToken: secret.momento })
   });
 };
 
