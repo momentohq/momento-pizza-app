@@ -35,10 +35,9 @@ exports.handler = async (event) => {
       // Oops
       console.error(`Something went wrong! ${cacheResult.toString()}`);
       throw cacheResult.innerException();
-    } elseif(cacheResult instanceof CacheGet.Hit){
-    // If the item is found in the cache, record as a cache hit. Also record total latency as same as cache latency alone. Publish to CW, return result and close out.
+    } else if(cacheResult instanceof CacheGet.Hit){
+    // If the item is found in the cache, record as a cache hit. Publish to CW, return result and close out.
       metrics.addMetric('get-order-cache-hit', MetricUnits.Count, 1);
-      metrics.addMetric('get-order-latency-total', MetricUnits.Milliseconds, momentoTime);
       metrics.publishStoredMetrics();
       return {
         statusCode: 200,
@@ -67,8 +66,7 @@ exports.handler = async (event) => {
       metrics.addMetric('get-order-latency-ddb', MetricUnits.Milliseconds, ddbTime);
 
       if (!result.Item) {
-        // Not found in database - close out the total latency metric (includes cache miss, database read) and publish to CW.
-        metrics.addMetric('get-order-latency-total', MetricUnits.Milliseconds, (ddbTime + momentoTime));
+        // Not found in database - publish to CW.
         metrics.publishStoredMetrics();
         return {
           statusCode: 404,
@@ -80,9 +78,6 @@ exports.handler = async (event) => {
       const data = unmarshall(result.Item)
       if (process.env.RESTRICT_TO_CREATOR == 'true' && data?.creator !== event.requestContext.identity.sourceIp) {
         // The user is not the creator of this order.
-        // Close out the total latency metric (includes cache miss, database read) and publish to CW.
-        metrics.addMetric('get-order-latency-total', MetricUnits.Milliseconds, (ddbTime + momentoTime));
-        metrics.publishStoredMetrics();
         return {
           statusCode: 403,
           body: JSON.stringify({ message: 'You are not allowed to view the requested order.' }),
@@ -102,18 +97,12 @@ exports.handler = async (event) => {
       // Build out the value that we'll return and ultimately store in the cache.
       const orderResponse = JSON.stringify(order);
 
-      // Record start time of writing back the data to the cache
-      const writebackStart = new Date();
-
       // Copy the data into the proper cache item (ready for next read)
       // *** Uncomment line below to enable caching
       // await cacheClient.set('pizza', cacheKey, orderResponse);
 
-      // Record elapsed time for writeback to cache
-      const writebackTime = (new Date().getTime() - writebackStart.getTime());
 
-      // Close out the total latency metric (includes cache miss, database read, copy to cache) and publish to CW.
-      metrics.addMetric('get-order-latency-total', MetricUnits.Milliseconds, (ddbTime + momentoTime + writebackTime));
+      // Publish to CW.
       metrics.publishStoredMetrics();
 
       return {
@@ -143,7 +132,7 @@ const initializeMomento = async () => {
   const secret = JSON.parse(secretResponse.SecretString);
 
   // Initialize Momento Cache session using default tuning for in-region clients, token from secrets manager, and a default TTL of 60s
-  cacheClient = new CacheClient({
+  cacheClient = await CacheClient.create({
     configuration: Configurations.Lambda.latest(),
     credentialProvider: CredentialProvider.fromString({ authToken: secret.momento }),
     defaultTtlSeconds: 60
