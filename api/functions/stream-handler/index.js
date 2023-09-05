@@ -90,7 +90,7 @@ const initializeMomento = async () => {
 
   const secretResponse = await secrets.send(new GetSecretValueCommand({ SecretId: process.env.SECRET_ID }));
   const secret = JSON.parse(secretResponse.SecretString);
-  cacheClient = new CacheClient({
+  cacheClient = await CacheClient.create({
     configuration: Configurations.Lambda.latest(),
     credentialProvider: CredentialProvider.fromString({ authToken: secret.momento }),
     defaultTtlSeconds: 60
