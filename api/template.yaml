@@ -443,9 +443,9 @@ Resources:
             {
                 "widgets": [
                     {
-                        "height": 10,
-                        "width": 12,
-                        "y": 5,
+                        "height": 15,
+                        "width": 14,
+                        "y": 0,
                         "x": 0,
                         "type": "metric",
                         "properties": {
@@ -467,9 +467,9 @@ Resources:
                     },
                     {
                         "height": 5,
-                        "width": 12,
-                        "y": 0,
-                        "x": 12,
+                        "width": 6,
+                        "y": 10,
+                        "x": 18,
                         "type": "metric",
                         "properties": {
                             "metrics": [
@@ -477,7 +477,7 @@ Resources:
                                 [ ".", "get-all-orders-latency-cache", ".", ".", { "region": "${AWS::Region}", "label": "get-all-orders-cache Avg" } ],
                                 [ ".", "get-all-orders-latency-ddb", ".", ".", { "region": "${AWS::Region}", "stat": "p99", "label": "get-all-orders-ddb p99", "color": "#ff7f0e" } ],
                                 [ ".", "get-all-orders-latency-cache", ".", ".", { "region": "${AWS::Region}", "stat": "p99", "label": "get-all-orders-cache p99", "color": "#2ca02c" } ]
-                                ],
+                            ],
                             "sparkline": false,
                             "view": "singleValue",
                             "region": "${AWS::Region}",
@@ -491,13 +491,13 @@ Resources:
                     },
                     {
                         "height": 5,
-                        "width": 12,
+                        "width": 6,
                         "y": 5,
-                        "x": 12,
+                        "x": 18,
                         "type": "metric",
                         "properties": {
                             "metrics": [
-                                [ "Momento", "get-my-orders-latency-ddb", "service ", "pizza-tracker", { "region": "${AWS::Region}", "label": "get-my-orders-ddb Avg", "color": "#9467bd" } ],
+                                [ "Momento", "get-my-orders-latency-ddb", "service", "pizza-tracker", { "region": "${AWS::Region}", "label": "get-my-orders-ddb Avg", "color": "#9467bd" } ],
                                 [ ".", "get-my-orders-latency-cache", ".", ".", { "region": "${AWS::Region}", "label": "get-my-orders-cache Avg", "color": "#8c564b" } ],
                                 [ ".", "get-my-orders-latency-ddb", ".", ".", { "region": "${AWS::Region}", "stat": "p99", "label": "get-my-orders-ddb p99" } ],
                                 [ ".", "get-my-orders-latency-cache", ".", ".", { "region": "${AWS::Region}", "stat": "p99", "label": "get-my-orders-cache p99" } ]
@@ -515,9 +515,9 @@ Resources:
                     },
                     {
                         "height": 5,
-                        "width": 12,
-                        "y": 10,
-                        "x": 12,
+                        "width": 6,
+                        "y": 0,
+                        "x": 18,
                         "type": "metric",
                         "properties": {
                             "metrics": [
@@ -538,10 +538,10 @@ Resources:
                         }
                     },
                     {
-                        "height": 5,
-                        "width": 12,
+                        "height": 15,
+                        "width": 4,
                         "y": 0,
-                        "x": 0,
+                        "x": 14,
                         "type": "metric",
                         "properties": {
                             "metrics": [
