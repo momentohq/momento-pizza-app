@@ -444,7 +444,7 @@ Resources:
                 "widgets": [
                     {
                         "height": 15,
-                        "width": 13,
+                        "width": 14,
                         "y": 0,
                         "x": 0,
                         "type": "metric",
@@ -539,9 +539,9 @@ Resources:
                     },
                     {
                         "height": 15,
-                        "width": 5,
+                        "width": 4,
                         "y": 0,
-                        "x": 13,
+                        "x": 14,
                         "type": "metric",
                         "properties": {
                             "metrics": [
