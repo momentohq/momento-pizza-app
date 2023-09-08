@@ -450,7 +450,7 @@ Resources:
                         "type": "metric",
                         "properties": {
                             "metrics": [
-                                [ "Momento", "get-all-orders-latency-ddb", ".", ".", { "label": "get-all-orders-ddb", "region": "${AWS::Region}" } ],
+                                [ "Momento", "get-all-orders-latency-ddb", "service", "pizza-tracker", { "label": "get-all-orders-ddb", "region": "${AWS::Region}" } ],
                                 [ ".", "get-all-orders-latency-cache", ".", ".", { "label": "get-all-orders-cache", "region": "${AWS::Region}" } ],
                                 [ ".", "get-my-orders-latency-ddb", ".", ".", { "label": "get-my-orders-ddb", "region": "${AWS::Region}" } ],
                                 [ ".", "get-my-orders-latency-cache", ".", ".", { "label": "get-my-orders-cache", "region": "${AWS::Region}" } ],
@@ -473,7 +473,7 @@ Resources:
                         "type": "metric",
                         "properties": {
                             "metrics": [
-                                [ "Momento", "get-all-orders-latency-ddb", ".", ".", { "region": "${AWS::Region}", "label": "get-all-orders-ddb Avg" } ],
+                                [ "Momento", "get-all-orders-latency-ddb", "service", "pizza-tracker", { "region": "${AWS::Region}", "label": "get-all-orders-ddb Avg" } ],
                                 [ ".", "get-all-orders-latency-cache", ".", ".", { "region": "${AWS::Region}", "label": "get-all-orders-cache Avg" } ],
                                 [ ".", "get-all-orders-latency-ddb", ".", ".", { "region": "${AWS::Region}", "stat": "p99", "label": "get-all-orders-ddb p99", "color": "#ff7f0e" } ],
                                 [ ".", "get-all-orders-latency-cache", ".", ".", { "region": "${AWS::Region}", "stat": "p99", "label": "get-all-orders-cache p99", "color": "#2ca02c" } ]
@@ -497,7 +497,7 @@ Resources:
                         "type": "metric",
                         "properties": {
                             "metrics": [
-                                [ "Momento", "get-my-orders-latency-ddb", ".", ".", { "region": "${AWS::Region}", "label": "get-my-orders-ddb Avg", "color": "#9467bd" } ],
+                                [ "Momento", "get-my-orders-latency-ddb", "service ", "pizza-tracker", { "region": "${AWS::Region}", "label": "get-my-orders-ddb Avg", "color": "#9467bd" } ],
                                 [ ".", "get-my-orders-latency-cache", ".", ".", { "region": "${AWS::Region}", "label": "get-my-orders-cache Avg", "color": "#8c564b" } ],
                                 [ ".", "get-my-orders-latency-ddb", ".", ".", { "region": "${AWS::Region}", "stat": "p99", "label": "get-my-orders-ddb p99" } ],
                                 [ ".", "get-my-orders-latency-cache", ".", ".", { "region": "${AWS::Region}", "stat": "p99", "label": "get-my-orders-cache p99" } ]
@@ -521,7 +521,7 @@ Resources:
                         "type": "metric",
                         "properties": {
                             "metrics": [
-                                [ "Momento", "get-order-latency-ddb", ".", ".", { "region": "${AWS::Region}", "label": "get-order-ddb Avg", "color": "#7f7f7f" } ],
+                                [ "Momento", "get-order-latency-ddb", "service", "pizza-tracker", { "region": "${AWS::Region}", "label": "get-order-ddb Avg", "color": "#7f7f7f" } ],
                                 [ ".", "get-order-latency-cache", ".", ".", { "region": "${AWS::Region}", "label": "get-order-cache Avg", "color": "#bcbd22" } ],
                                 [ ".", "get-order-latency-ddb", ".", ".", { "region": "${AWS::Region}", "stat": "p99", "label": "get-order-ddb p99", "color": "#7f7f7f" } ],
                                 [ ".", "get-order-latency-cache", ".", ".", { "region": "${AWS::Region}", "stat": "p99", "label": "get-order-cache p99", "color": "#bcbd22" } ]
