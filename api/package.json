@@ -1,0 +1,11 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "Scripts to run to help you build!",
+  "main": "index.js",
+  "scripts": {
+    "cloud9": "aws lambda invoke --function-name GetCloudNineUrls data.json"
+  },
+  "author": "Momento, Inc",
+  "license": "ISC"
+}
