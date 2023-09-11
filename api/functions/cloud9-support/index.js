@@ -4,7 +4,7 @@ const cloud9 = new Cloud9Client();
 
 exports.handler = async (event) => {
   try {
-    const response = await cloud9.send(new ListEnvironmentsCommand());
+    const response = await cloud9.send(new ListEnvironmentsCommand({}));
     if(!response.environmentIds?.length){
       return { message: 'No Cloud9 environments were found. Please use localhost.'};
     } 
