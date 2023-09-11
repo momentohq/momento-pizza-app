@@ -446,7 +446,7 @@ Resources:
                         "height": 15,
                         "width": 14,
                         "y": 0,
-                        "x": 0,
+                        "x": 10,
                         "type": "metric",
                         "properties": {
                             "metrics": [
@@ -462,14 +462,16 @@ Resources:
                             "region": "${AWS::Region}",
                             "stat": "Average",
                             "period": 60,
-                            "title": "Avg Latency"
+                            "title": "Avg Latency",
+                            "start": "-PT10M",
+                            "end": "P0D"
                         }
                     },
                     {
                         "height": 5,
                         "width": 6,
                         "y": 10,
-                        "x": 18,
+                        "x": 0,
                         "type": "metric",
                         "properties": {
                             "metrics": [
@@ -493,7 +495,7 @@ Resources:
                         "height": 5,
                         "width": 6,
                         "y": 5,
-                        "x": 18,
+                        "x": 0,
                         "type": "metric",
                         "properties": {
                             "metrics": [
@@ -517,7 +519,7 @@ Resources:
                         "height": 5,
                         "width": 6,
                         "y": 0,
-                        "x": 18,
+                        "x": 0,
                         "type": "metric",
                         "properties": {
                             "metrics": [
@@ -541,13 +543,13 @@ Resources:
                         "height": 15,
                         "width": 4,
                         "y": 0,
-                        "x": 14,
+                        "x": 6,
                         "type": "metric",
                         "properties": {
                             "metrics": [
-                                [ { "expression": "m5*100/(m3+m5)", "label": "get-all-orders", "id": "e3", "region": "${AWS::Region}" } ],
-                                [ { "expression": "m6*100/(m2+m6)", "label": "get-my-orders", "id": "e2", "region": "${AWS::Region}" } ],
                                 [ { "expression": "m4*100/(m1+m4)", "label": "get-order", "id": "e1", "region": "${AWS::Region}" } ],
+                                [ { "expression": "m6*100/(m2+m6)", "label": "get-my-orders", "id": "e2", "region": "${AWS::Region}" } ],
+                                [ { "expression": "m5*100/(m3+m5)", "label": "get-all-orders", "id": "e3", "region": "${AWS::Region}" } ],
                                 [ "Momento", "get-order-cache-miss", "service", "pizza-tracker", { "region": "${AWS::Region}", "id": "m1", "visible": false } ],
                                 [ ".", "get-my-orders-cache-miss", ".", ".", { "region": "${AWS::Region}", "id": "m2", "visible": false } ],
                                 [ ".", "get-all-orders-cache-miss", ".", ".", { "region": "${AWS::Region}", "id": "m3", "visible": false } ],
@@ -559,8 +561,8 @@ Resources:
                             "view": "gauge",
                             "region": "${AWS::Region}",
                             "title": "Cache Hit Rates",
-                            "period": 300,
-                            "stat": "Sum",
+                            "period": 900,
+                            "stat": "SampleCount",
                             "legend": {
                                 "position": "bottom"
                             },
