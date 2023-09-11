@@ -578,6 +578,19 @@ Resources:
             }
           - region: !Ref AWS::Region
 
+  CloudNineSupportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/cloud9-support
+      FunctionName: GetCloudNineUrls
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action: cloud9:ListEnvironments
+              Resource: '*'
+
 Outputs:
   OrderApiEndpoint:
     Description: Copy and paste this value in ./order-ui/next.config.js into the NEXT_PUBLIC_ORDER_API property

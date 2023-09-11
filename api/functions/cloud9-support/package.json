@@ -1,0 +1,14 @@
+{
+  "name": "cloud9-support",
+  "version": "1.0.0",
+  "description": "Gets the public url for a cloud9 environment",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Momento, Inc",
+  "license": "ISC",
+  "devDependencies": {
+    "@aws-sdk/client-cloud9": "^3.410.0"
+  }
+}
