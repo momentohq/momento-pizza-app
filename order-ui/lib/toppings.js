@@ -3,7 +3,7 @@ export const toppingList = [
   'pepperoni',
   'sausage',
   'chicken',
-  'anchovies',
+  'pineapple',
   'olives',
   'peppers',
   'mushrooms',
