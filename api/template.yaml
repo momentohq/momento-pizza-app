@@ -512,8 +512,8 @@ Resources:
                             "title": "GetAllOrders Latency",
                             "period": 300,
                             "stat": "Average",
-                            "setPeriodToTimeRange": true,
-                            "trend": false,
+                            "setPeriodToTimeRange": false,
+                            "trend": true,
                             "liveData": false
                         }
                     },
@@ -598,8 +598,8 @@ Resources:
                                     "max": 100
                                 }
                             },
-                            "setPeriodToTimeRange": true,
-                            "trend": false
+                            "setPeriodToTimeRange": false,
+                            "trend": true
                         }
                     }
                 ]
